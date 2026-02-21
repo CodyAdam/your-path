@@ -1,10 +1,10 @@
 import { ChevronLeft, Play } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GraphFlow } from "@/app/components/GraphFlow";
+import { getGraph } from "@/app/actions/get-graph";
 import { CopyButton } from "@/components/copy-button";
+import { GraphFlow } from "@/components/GraphFlow";
 import { Button } from "@/components/ui/button";
-import { demoGraphs } from "@/lib/demo-graph";
 
 export default async function EditPage({
   params,
@@ -12,7 +12,7 @@ export default async function EditPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const graph = demoGraphs[id];
+  const graph = await getGraph(id);
   if (!graph) {
     return notFound();
   }

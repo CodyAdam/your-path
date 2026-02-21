@@ -3,10 +3,10 @@
 import { speechToEmotion } from "./_processing/speech-emotion";
 import { speechToText } from "./_processing/speech-to-text";
 
-export type AnalyseAudioResult = {
-  speechToText: { result: string };
+export interface AnalyseAudioResult {
   sentimentAnalysis: { result: string };
-};
+  speechToText: { result: string };
+}
 
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
 const ALLOWED_TYPES = [
