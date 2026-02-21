@@ -1,0 +1,260 @@
+{
+  "title": "First Date",
+  "startImageUrl": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1280",
+  "prompt": "A cozy café date scene. A young woman sits across the table, calm demeanor with a slight ironic smile. Warm lighting, intimate setting. She speaks directly to the camera as if the viewer is her date.",
+  "startNodeId": "node-01",
+  "nodes": [
+    {
+      "id": "node-01",
+      "title": "Arrival / Greeting",
+      "script": "She sits at the table, relaxed, with a slight smile. She looks up and says: 'Hey. Hi. Nice to finally meet you. How are you doing?'",
+      "options": [
+        {
+          "condition": "Player responds politely and naturally, showing basic social awareness and respect",
+          "nodeId": "node-02"
+        },
+        {
+          "condition": "Player is rude, dismissive, or disrespectful in tone or content",
+          "nodeId": "lose-respect"
+        }
+      ],
+      "fallbackNodeId": "node-02"
+    },
+    {
+      "id": "node-02",
+      "title": "Small Talk Starter",
+      "script": "They're seated, drinks not ordered yet. Casual atmosphere. She says: 'So… how was your day today?'",
+      "options": [
+        {
+          "condition": "Player engages in natural back-and-forth conversation, showing interest",
+          "nodeId": "node-03"
+        },
+        {
+          "condition": "Player says something weird, inappropriate, or disrespectful",
+          "nodeId": "lose-respect"
+        }
+      ],
+      "fallbackNodeId": "node-03"
+    },
+    {
+      "id": "node-03",
+      "title": "Interests & Hobbies",
+      "script": "She leans forward a bit, curious. She asks: 'What do you usually like to do when you have free time?'",
+      "options": [
+        {
+          "condition": "Player describes balanced, genuine interests without excessive bragging or name-dropping",
+          "nodeId": "node-04"
+        },
+        {
+          "condition": "Player shows borderline flexing — mentions expensive hobbies, achievements, or status but not aggressively",
+          "nodeId": "node-05"
+        },
+        {
+          "condition": "Player heavily flexes about money, status, possessions, or achievements in a boastful way",
+          "nodeId": "lose-flexer"
+        }
+      ],
+      "fallbackNodeId": "node-04"
+    },
+    {
+      "id": "node-04",
+      "title": "Curiosity Check",
+      "script": "She reacts naturally to what he just said. She asks: 'And what about you, what do you enjoy the most about that?'",
+      "options": [
+        {
+          "condition": "Player asks questions back, shows genuine curiosity about her life and interests",
+          "nodeId": "node-06"
+        },
+        {
+          "condition": "Player is self-centered, only talks about themselves without showing interest in her",
+          "nodeId": "lose-respect"
+        }
+      ],
+      "fallbackNodeId": "node-06"
+    },
+    {
+      "id": "node-05",
+      "title": "Flex Follow-Up",
+      "script": "She has a slight smile, half-joking tone. She says: 'That sounds intense. Do you ever just… switch off and relax?'",
+      "options": [
+        {
+          "condition": "Player is self-aware about their flexing, laughs about it, shows humility",
+          "nodeId": "node-06"
+        },
+        {
+          "condition": "Player doubles down on flexing or gets defensive about their lifestyle",
+          "nodeId": "lose-flexer"
+        }
+      ],
+      "fallbackNodeId": "lose-flexer"
+    },
+    {
+      "id": "node-06",
+      "title": "Lifestyle & Routine",
+      "script": "Relaxed conversation flow, neutral tone. She asks: 'What does a typical week look like for you?'",
+      "options": [
+        {
+          "condition": "Player describes healthy or neutral habits and lifestyle",
+          "nodeId": "node-07"
+        },
+        {
+          "condition": "Player mentions alcohol-centered lifestyle but conversation can continue",
+          "nodeId": "node-07"
+        }
+      ],
+      "fallbackNodeId": "node-07"
+    },
+    {
+      "id": "node-07",
+      "title": "The Drink Moment",
+      "script": "A waiter approaches. She looks at the player, then at the menu. She says: 'I'm not sure what to get. You can choose for me.'",
+      "options": [
+        {
+          "condition": "Player chooses a non-alcoholic drink, or asks her preference first, or suggests something without alcohol",
+          "nodeId": "node-08"
+        },
+        {
+          "condition": "Player orders alcohol or suggests alcoholic drinks casually",
+          "nodeId": "lose-alcohol"
+        }
+      ],
+      "fallbackNodeId": "node-08"
+    },
+    {
+      "id": "node-08",
+      "title": "Past Experiences",
+      "script": "Drinks arrived. Slightly more personal tone. She asks: 'Have you had any meaningful relationships or experiences that shaped you?'",
+      "options": [
+        {
+          "condition": "Player gives a balanced, reflective answer showing emotional maturity and growth",
+          "nodeId": "node-09"
+        },
+        {
+          "condition": "Player shows slight bitterness about past but isn't toxic about it",
+          "nodeId": "node-10"
+        },
+        {
+          "condition": "Player blames ex-partners, shows victim mentality, or speaks with drama and resentment",
+          "nodeId": "lose-victim"
+        }
+      ],
+      "fallbackNodeId": "node-09"
+    },
+    {
+      "id": "node-09",
+      "title": "Growth & Self-Awareness",
+      "script": "She listens attentively, then gently pushes. She asks: 'And looking back at that, what do you think you learned about yourself?'",
+      "options": [
+        {
+          "condition": "Player shows accountability, self-reflection, and personal growth",
+          "nodeId": "node-11"
+        },
+        {
+          "condition": "Player avoids responsibility, deflects, or shows no self-awareness",
+          "nodeId": "lose-victim"
+        }
+      ],
+      "fallbackNodeId": "node-11"
+    },
+    {
+      "id": "node-10",
+      "title": "Awkward Beat",
+      "script": "Small silence. She smiles, slightly playful. She says: 'Okay… that got a little deep for a first date.'",
+      "options": [
+        {
+          "condition": "Player laughs it off or handles the awkward moment gracefully",
+          "nodeId": "node-11"
+        },
+        {
+          "condition": "Player gets defensive, passive-aggressive, or makes it more awkward",
+          "nodeId": "lose-respect"
+        }
+      ],
+      "fallbackNodeId": "node-11"
+    },
+    {
+      "id": "node-11",
+      "title": "Music / Fun Moment",
+      "script": "Mood shift. She smiles more openly and asks: 'Random question… are you into music at all?'",
+      "options": [
+        {
+          "condition": "Player engages positively with the topic, shows enthusiasm or interest in music",
+          "nodeId": "node-12"
+        }
+      ],
+      "fallbackNodeId": "node-12"
+    },
+    {
+      "id": "node-12",
+      "title": "Singing Test",
+      "script": "Same playful vibe, she's calm but curious. She says: 'So… could you sing something? Even just a few seconds.'",
+      "options": [
+        {
+          "condition": "Player attempts to sing, even badly, or makes a fun effort showing they don't take themselves too seriously",
+          "nodeId": "node-13"
+        },
+        {
+          "condition": "Player refuses playfully but keeps the energy up",
+          "nodeId": "node-13"
+        },
+        {
+          "condition": "Player refuses harshly, kills the vibe, or reacts negatively to the playful request",
+          "nodeId": "lose-singing"
+        }
+      ],
+      "fallbackNodeId": "node-13"
+    },
+    {
+      "id": "node-13",
+      "title": "Final Chemistry Check",
+      "script": "End-of-date energy. She gathers her things slowly. She says: 'I had a nice time tonight. How did you feel about it?'",
+      "options": [
+        {
+          "condition": "Player is calm, respectful, engaged, and genuine in their response",
+          "nodeId": "node-14-win"
+        },
+        {
+          "condition": "Player is pushy, intense, or makes the ending uncomfortable",
+          "nodeId": "lose-respect"
+        }
+      ],
+      "fallbackNodeId": "node-14-win"
+    },
+    {
+      "id": "node-14-win",
+      "title": "Date Success",
+      "script": "She stands up with a warm smile. She says: 'Alright. I think that was really nice. Let's do this again sometime.' She gives a genuine, happy look.",
+      "options": []
+    },
+    {
+      "id": "lose-respect",
+      "title": "Lost — Disrespectful",
+      "script": "Her expression shifts. She looks away briefly, then back with a polite but cold smile. She says: 'Alright. I think that's a good place to stop. It was nice meeting you.' She stands up and leaves.",
+      "options": []
+    },
+    {
+      "id": "lose-flexer",
+      "title": "Lost — Flexer Detected",
+      "script": "She leans back, slight eye roll she tries to hide. She says: 'You know what, I just remembered I have something early tomorrow. It was nice meeting you though.' She grabs her bag.",
+      "options": []
+    },
+    {
+      "id": "lose-alcohol",
+      "title": "Lost — Alcohol",
+      "script": "Her smile fades slightly. She looks at the drink, then at him. She says: 'Actually, I think I'm going to head out. I hope you enjoy the rest of your evening.' She stands up politely but firmly.",
+      "options": []
+    },
+    {
+      "id": "lose-victim",
+      "title": "Lost — Victim Mindset",
+      "script": "She listens but her eyes glaze over. She says: 'I appreciate you sharing that. I think I need to get going though. Take care of yourself.' Distant but not cruel.",
+      "options": []
+    },
+    {
+      "id": "lose-singing",
+      "title": "Lost — Killed the Vibe",
+      "script": "The playful energy drops. She nods slowly. 'Okay, no worries.' Awkward silence. She checks her phone. 'I think I should probably head out soon.' The date is over.",
+      "options": []
+    }
+  ]
+}

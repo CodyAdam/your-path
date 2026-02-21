@@ -46,68 +46,78 @@ Unlike Berghaintrainer (which uses random outcomes disguised as AI), YourPath ma
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Decision Tree Structure
+### Graph Structure (Source of Truth: `lib/graph-structure.ts`)
+
+The scenario graph is a **potentially cyclic directed graph** defined with Zod schemas.
 
 ```
-                    [Root Node]
-                   /     |      \
-            [Node A]  [Node B]  [Node C]
-            /    \       |       /    \
-        [A1]   [A2]   [B1]   [C1]   [C2]
-         |              |      |
-       [End:   [End:  [End:  [End:
-       Pass]   Fail]  Pass]  Fail]
+          ┌──────────────┐
+          │  Start Node   │
+          └──┬───┬───┬───┘
+   condition │   │   │ no match
+      met    │   │   ▼
+             │   │  [fallback node]
+             ▼   ▼
+        [Node A] [Node B] ◄─── can loop back
+            │       │
+            ▼       ▼
+      [End Node]  [End Node]   (options = [] → end)
+       success      failure
 ```
 
-Each node contains:
-- `video_url` — pre-recorded or AI-generated video clip
-- `prompt_context` — what the NPC says / scenario context
-- `criteria` — LLM evaluation criteria for branching
-- `children` — map of outcome → next node ID
-- `is_terminal` — whether this is an end state
-- `terminal_result` — "success" | "failure" (if terminal)
-
-### Data Model
-
+**Graph schema** (`lib/graph-structure.ts`):
 ```typescript
-// app/types/scenario.ts
+graphStructure {
+  title: string
+  startImageUrl: string       // image seed for AI video generation
+  prompt: string              // scenario description for video generation
+  startNodeId: string         // entry point node ID
+  nodes: Node[]               // all nodes in the graph
+}
 
-interface Scenario {
+Node {
   id: string
   title: string
-  description: string
-  max_steps: number
-  root_node: string
-  nodes: Record<string, DecisionNode>
-  created_by?: string
+  script: string              // what the NPC says / shows in this segment
+  options: Option[]           // branching paths (empty = end node)
+  fallbackNodeId?: string     // default path if no condition matches
 }
 
-interface DecisionNode {
-  id: string
-  video_url: string
-  idle_video_url?: string         // generated sway animation
-  npc_dialogue: string            // what the NPC says in this node
-  evaluation_criteria: string     // LLM prompt for evaluating user response
-  children: Record<string, string> // outcome → next node ID
-  is_terminal: boolean
-  terminal_result?: "success" | "failure"
+Option {
+  condition: string           // condition text evaluated by LLM against player input
+  nodeId: string              // next node if condition is met
 }
+```
+
+**Key design decisions:**
+- **Cyclic graph, not just a tree** — nodes can loop back (e.g., "ask again" if player gives nonsense)
+- **Per-branch conditions** — each option has its own `condition` string, evaluated by LLM
+- **Fallback path** — `fallbackNodeId` catches unmatched responses instead of breaking
+- **Empty options = end node** — no separate `is_terminal` flag needed
+- **Conditions reference multimodal input** — condition strings can describe voice, emotion, facial cues (e.g., "player sounds confident and provides a specific example")
+
+### Session Data Model
+
+```typescript
+// Runtime types for player sessions (not in graph-structure.ts yet)
 
 interface PlayerSession {
   id: string
-  scenario_id: string
-  current_node_id: string
+  graphTitle: string
+  currentNodeId: string
   history: SessionStep[]
-  started_at: number
+  startedAt: number
   status: "in_progress" | "completed"
+  result?: "success" | "failure"
 }
 
 interface SessionStep {
-  node_id: string
+  nodeId: string
   transcript: string              // STT result
-  speech_emotion: EmotionScores   // SER output
-  facial_emotion: EmotionScores   // FER output
-  llm_decision: string            // chosen outcome
+  speechEmotion: string           // SER output
+  facialEmotion?: EmotionScores   // FER output
+  chosenOptionIndex: number | -1  // -1 = fallback was used
+  nextNodeId: string
   timestamp: number
 }
 
@@ -130,7 +140,7 @@ interface EmotionScores {
 - **Bun** — package manager & runtime
 - **TailwindCSS v4** — styling
 - **React Query** (`@tanstack/react-query`) — async state management
-- **Zod** — runtime validation
+- **Zod** — runtime validation & schema definitions
 - **ElevenLabs** — STT via Scribe v2 (already integrated)
 - **Claude API (Anthropic)** — LLM decision engine for evaluating player responses
 - **SER** — speech emotion recognition (stub exists, needs real implementation)
@@ -139,7 +149,7 @@ interface EmotionScores {
 - **Vercel** — fullstack hosting (frontend + server actions + edge functions)
 
 ### Storage (V0)
-- **JSON files** in `app/data/scenarios/` — pre-built decision trees
+- **JSON files** in `app/data/scenarios/` — pre-built scenario graphs
 - **`public/videos/`** — video assets served statically
 
 ## Project Structure
@@ -157,6 +167,9 @@ your-path/
 ├── next.config.ts
 ├── tsconfig.json
 ├── tailwind / postcss configs
+│
+├── lib/
+│   └── graph-structure.ts        # Zod schemas: graphStructure + nodeSchema ✅
 │
 ├── app/
 │   ├── layout.tsx                # Root layout (fonts, providers)
@@ -190,11 +203,11 @@ your-path/
 │   │   ├── useMediaCapture.ts    # Webcam + mic (TODO)
 │   │   └── useIdleAnimation.ts   # Last-frame sway (TODO)
 │   │
-│   ├── types/                    # Shared TypeScript types
-│   │   └── scenario.ts           # Scenario, DecisionNode, Session types
+│   ├── types/                    # Additional TypeScript types
+│   │   └── session.ts            # PlayerSession, SessionStep, EmotionScores
 │   │
 │   └── data/
-│       └── scenarios/            # V0 pre-built scenario JSON files
+│       └── scenarios/            # V0 pre-built scenario graph JSON files
 │           ├── behavior-interview.json
 │           └── scenario-2.json
 │
@@ -206,6 +219,7 @@ your-path/
 
 ## What's Already Built
 
+- ✅ **Graph structure schema** (`lib/graph-structure.ts`) — Zod schemas for scenario graph + nodes with conditions
 - ✅ **Audio analysis pipeline** (`app/actions/analyse-audio.ts`) — validates audio, runs STT + SER in parallel
 - ✅ **ElevenLabs STT** (`app/actions/_processing/speech-to-text.ts`) — Scribe v2 integration
 - ✅ **AudioProcessor type** (`app/actions/_processing/types.ts`) — pluggable processor interface
@@ -244,12 +258,13 @@ When waiting for LLM decision, extract last frame from video and apply subtle CS
 
 ```typescript
 // app/actions/evaluate.ts (server action)
-// Input: { transcript, speech_emotion, facial_emotion, node_criteria, conversation_history }
+// Input: { transcript, speechEmotion, facialEmotion, currentNode, conversationHistory }
 // Process:
-//   1. Build prompt with scenario context + current node criteria
-//   2. Include player's transcript, emotion scores as evidence
-//   3. Ask Claude to evaluate and choose an outcome from node.children keys
-//   4. Return: { outcome: string, reasoning: string }
+//   1. Build prompt with scenario context + current node script
+//   2. Include player's transcript, emotion data as evidence
+//   3. For each option in currentNode.options, ask Claude if the condition is met
+//   4. Return first matching option's nodeId, or fallbackNodeId if none match
+//   5. Return: { nextNodeId: string, matchedOptionIndex: number, reasoning: string }
 ```
 
 ### 4. Audio Processing Pipeline (Already Built)
@@ -267,26 +282,42 @@ type AudioProcessor = (file: Blob) => Promise<{ result: string }>
 
 ### 5. V0 Pre-built Scenario Format
 
+Following `lib/graph-structure.ts` schema:
+
 ```json
 {
-  "id": "behavior-interview",
   "title": "Tech Company Behavior Interview",
-  "description": "You are interviewing for a senior role. Impress the interviewer.",
-  "max_steps": 5,
-  "root_node": "intro",
-  "nodes": {
-    "intro": {
-      "video_url": "/videos/interview/intro.mp4",
-      "npc_dialogue": "Welcome! Tell me about a time you led a challenging project.",
-      "evaluation_criteria": "Evaluate if the candidate provides a specific example with clear structure (situation, task, action, result). Check confidence in voice and facial expressions.",
-      "children": {
-        "strong_answer": "q2_impressed",
-        "weak_answer": "q2_skeptical",
-        "off_topic": "q2_redirect"
-      },
-      "is_terminal": false
+  "startImageUrl": "/videos/interview/thumbnail.jpg",
+  "prompt": "A professional job interview setting in a modern office",
+  "startNodeId": "intro",
+  "nodes": [
+    {
+      "id": "intro",
+      "title": "Opening Question",
+      "script": "Welcome! Tell me about a time you led a challenging project.",
+      "options": [
+        {
+          "condition": "Player provides a specific example with clear STAR structure and sounds confident",
+          "nodeId": "q2_impressed"
+        },
+        {
+          "condition": "Player gives a vague or generic answer without specifics",
+          "nodeId": "q2_skeptical"
+        },
+        {
+          "condition": "Player goes off topic or doesn't answer the question",
+          "nodeId": "q2_redirect"
+        }
+      ],
+      "fallbackNodeId": "q2_skeptical"
+    },
+    {
+      "id": "q2_impressed",
+      "title": "Impressed Follow-up",
+      "script": "That's a great example. How did you handle conflicts within the team?",
+      "options": [],
     }
-  }
+  ]
 }
 ```
 
@@ -321,6 +352,7 @@ HUME_API_KEY=            # (optional) Hume AI for SER/FER
 ## Conventions
 
 - **TypeScript** everywhere — strict types, no `any`
+- **Zod schemas** in `lib/` as source of truth for data structures — use `z.infer<>` for types
 - **Next.js App Router** — file-based routing in `app/`
 - **Server Actions** (`"use server"`) for all backend logic — no separate API server
 - **React Query** for client-side async state (mutations for server action calls)
@@ -339,11 +371,12 @@ HUME_API_KEY=            # (optional) Hume AI for SER/FER
 
 - **Berghaintrainer reference**: They use Nuxt.js + video src swapping + annyang.js for speech. Their "AI" is actually random. Ours is real.
 - **Fullstack Next.js**: No separate backend — server actions handle all server-side logic. Deployed as a single unit on Vercel.
+- **Graph schema is source of truth**: `lib/graph-structure.ts` defines the canonical graph/node shape. Use `z.infer<typeof graphStructure>` for types. Don't duplicate these types manually.
 - **Browser requirements**: Webcam + mic permissions required.
 - **Idle animation**: Use canvas `drawImage()` from last video frame + CSS transforms for sway. Keep it subtle — just enough to avoid a frozen screen.
 - **Video preloading**: Preload all children video nodes of current node to minimize transition delay.
 - **LLM latency**: Expect 1-3s for Claude API response. Idle animation covers this gap.
-- **V0 focus**: Hardcode 2 scenarios, no admin UI needed. All decision trees defined in JSON.
-- **V1 scope**: Single prompt + max steps → Claude generates decision tree JSON → admin reviews → approve → trigger video generation per node.
+- **V0 focus**: Hardcode 2 scenarios, no admin UI needed. All scenario graphs defined in JSON.
+- **V1 scope**: Single prompt + max steps → Claude generates graph JSON → admin reviews → approve → trigger video generation per node.
 - **ElevenLabs STT**: Already integrated. Uses Scribe v2 model. Requires `ELEVENLABS_API_KEY`.
 - **SER stub**: `speech-emotion.ts` currently returns hardcoded "happy" — needs real implementation (Hume AI or open-source model).
