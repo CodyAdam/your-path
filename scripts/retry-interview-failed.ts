@@ -131,7 +131,7 @@ async function main() {
     `Step 2: Generating ${missingIdle.length} missing idle videos (5 concurrent)...\n`,
   );
 
-  const idleBasePrompt = `${interview.prompt}. The character sits quietly, listening attentively. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No speaking. No text, no subtitles, no words on screen.`;
+  const idleBasePrompt = `The character sits quietly, listening attentively. Mouth closed, lips together, not speaking. She does not talk. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No talking, no lip movement, no mouth movement. No text, no subtitles, no words on screen.`;
 
   let done = 0;
   const failed: string[] = [];
@@ -153,7 +153,7 @@ async function main() {
       const idleResult = await generateVideoFromImage({
         imageUrl: lastFrameDataUri,
         prompt: idleBasePrompt,
-        duration: 5,
+        duration: 12,
         cameraFixed: true,
       });
 

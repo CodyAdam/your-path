@@ -4,6 +4,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import interview from "../app/data/scenarios/interview.json";
+import videoPrompts from "../app/data/scenarios/interview-video-prompts.json";
 
 const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos");
 const IMAGES_DIR = join(import.meta.dir, "..", "public", "images");
@@ -79,15 +80,8 @@ async function main() {
   let kfDone = 0;
 
   const keyframeTasks = interview.nodes.map((node) => async () => {
-    const isTerminal = node.options.length === 0;
-    const mood = isTerminal
-      ? node.title.toLowerCase().includes("success") ||
-        node.title.toLowerCase().includes("closing")
-        ? "warm smile, positive energy"
-        : "polite but distant expression, closing the conversation"
-      : "engaged, attentive, professional expression";
-
-    const prompt = `${interview.prompt}. ${mood}. No text, no subtitles, no words on screen.`;
+    const nodePrompt = videoPrompts.nodes[node.id as keyof typeof videoPrompts.nodes];
+    const prompt = `${interview.prompt}. ${nodePrompt ?? "Professional interviewer at desk. No text, no subtitles, no words on screen."}`;
 
     try {
       const result = await generateImage({
@@ -125,7 +119,7 @@ async function main() {
   //   3. Generate idle video from that last frame (smooth transition)
   // This is sequential WITHIN a node but parallel ACROSS nodes.
 
-  const idleBasePrompt = `${interview.prompt}. The character sits quietly, listening attentively. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No speaking. No text, no subtitles, no words on screen.`;
+  const idleBasePrompt = videoPrompts.idlePrompt;
 
   const totalNodes = interview.nodes.length;
   let nodesDone = 0;
@@ -138,19 +132,12 @@ async function main() {
 
     // 3a. Generate main video from keyframe
     try {
-      // Describe the visual action without including dialogue text
-      const isTerminalNode = node.options.length === 0;
-      const visualAction = isTerminalNode
-        ? node.title.toLowerCase().includes("success")
-          ? "The interviewer smiles warmly, closes her notebook, and gives an encouraging nod. Positive body language."
-          : node.title.toLowerCase().includes("fence")
-          ? "The interviewer nods politely with a neutral, professional expression. She gathers her papers."
-          : "The interviewer pauses, closes her notebook with a measured expression. Polite but final body language."
-        : "The interviewer speaks directly to camera, natural hand gestures, professional and engaged expression. She is asking a question.";
+      const nodeVideoPrompt = videoPrompts.nodes[node.id as keyof typeof videoPrompts.nodes]
+        ?? "Professional interviewer at desk. No text, no subtitles, no words on screen.";
 
       const mainResult = await generateVideoFromImage({
         imageUrl: keyframeUrl,
-        prompt: `${interview.prompt}. ${visualAction} No text, no subtitles, no words on screen.`,
+        prompt: `${interview.prompt}. ${nodeVideoPrompt}`,
         duration: 5,
       });
 
@@ -181,7 +168,7 @@ async function main() {
         const idleResult = await generateVideoFromImage({
           imageUrl: lastFrameDataUri,
           prompt: idleBasePrompt,
-          duration: 5,
+          duration: 12,
           cameraFixed: true,
         });
 
