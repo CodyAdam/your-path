@@ -1,0 +1,202 @@
+{
+  "title": "Tech Behavior Interview",
+  "startImageUrl": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1280",
+  "prompt": "A professional job interview in a modern tech office. A confident female interviewer in business casual sits behind a clean desk with a laptop. She speaks directly to the camera as if the viewer is the candidate. Neutral lighting, corporate but friendly environment.",
+  "startNodeId": "node-01",
+  "nodes": [
+    {
+      "id": "node-01",
+      "title": "Welcome & Icebreaker",
+      "script": "The interviewer smiles warmly and gestures to the chair. She says: 'Welcome! Thanks for coming in today. Before we dive in, tell me a bit about yourself and what brought you here.'",
+      "options": [
+        {
+          "condition": "Player gives a concise, relevant introduction covering their background and motivation for applying",
+          "nodeId": "node-02"
+        },
+        {
+          "condition": "Player rambles without focus, gives irrelevant personal details, or seems unprepared",
+          "nodeId": "node-02-skeptical"
+        },
+        {
+          "condition": "Player is arrogant, dismissive of the question, or shows no interest in the role",
+          "nodeId": "lose-attitude"
+        }
+      ],
+      "fallbackNodeId": "node-02"
+    },
+    {
+      "id": "node-02",
+      "title": "Leadership Challenge",
+      "script": "She nods approvingly and leans forward. She says: 'Great. Tell me about a time you led a challenging project. What was the situation and what did you do?'",
+      "options": [
+        {
+          "condition": "Player provides a specific example using STAR structure (Situation, Task, Action, Result) with clear leadership and impact",
+          "nodeId": "node-03-impressed"
+        },
+        {
+          "condition": "Player gives a vague or generic answer without specific details or clear personal contribution",
+          "nodeId": "node-03-probing"
+        },
+        {
+          "condition": "Player takes all credit, dismisses team contributions, or gives a clearly fabricated story",
+          "nodeId": "lose-credibility"
+        }
+      ],
+      "fallbackNodeId": "node-03-probing"
+    },
+    {
+      "id": "node-02-skeptical",
+      "title": "Redirect — Focus",
+      "script": "She tilts her head slightly, maintaining a professional smile. She says: 'Interesting. Let me ask you something more specific — can you walk me through a project you're most proud of?'",
+      "options": [
+        {
+          "condition": "Player recovers with a clear, structured answer about a specific project with measurable outcomes",
+          "nodeId": "node-03-impressed"
+        },
+        {
+          "condition": "Player continues to be vague or unfocused but shows some relevant experience",
+          "nodeId": "node-03-probing"
+        },
+        {
+          "condition": "Player still can't provide any concrete examples or seems to be making things up",
+          "nodeId": "lose-credibility"
+        }
+      ],
+      "fallbackNodeId": "node-03-probing"
+    },
+    {
+      "id": "node-03-impressed",
+      "title": "Conflict Resolution",
+      "script": "She's visibly engaged, taking notes. She says: 'That's impressive. Now, in that project or another — how did you handle disagreements or conflict within the team?'",
+      "options": [
+        {
+          "condition": "Player describes a mature approach to conflict: active listening, finding compromise, focusing on the problem not the person",
+          "nodeId": "node-04"
+        },
+        {
+          "condition": "Player shows they avoid conflict entirely or escalate it rather than resolving it",
+          "nodeId": "node-04-concern"
+        }
+      ],
+      "fallbackNodeId": "node-04"
+    },
+    {
+      "id": "node-03-probing",
+      "title": "Digging Deeper",
+      "script": "She pauses, then says: 'I'd like to understand your approach better. Can you give me a specific example of a technical challenge you solved and walk me through your thought process?'",
+      "options": [
+        {
+          "condition": "Player provides a clear technical example with structured problem-solving and explains their reasoning",
+          "nodeId": "node-04"
+        },
+        {
+          "condition": "Player gives a surface-level answer without demonstrating deep technical thinking",
+          "nodeId": "node-04-concern"
+        },
+        {
+          "condition": "Player can't provide any technical example or clearly lacks the required skills",
+          "nodeId": "lose-technical"
+        }
+      ],
+      "fallbackNodeId": "node-04-concern"
+    },
+    {
+      "id": "node-04",
+      "title": "Failure & Growth",
+      "script": "She puts down her pen and looks directly at the candidate. She says: 'Tell me about a time you failed. What happened and what did you learn from it?'",
+      "options": [
+        {
+          "condition": "Player shares a genuine failure, takes ownership, and clearly explains what they learned and how they grew",
+          "nodeId": "node-05"
+        },
+        {
+          "condition": "Player gives a disguised success story as a failure, or claims they've never really failed",
+          "nodeId": "node-05-skeptical"
+        },
+        {
+          "condition": "Player blames others entirely for the failure, shows no self-awareness or accountability",
+          "nodeId": "lose-attitude"
+        }
+      ],
+      "fallbackNodeId": "node-05"
+    },
+    {
+      "id": "node-04-concern",
+      "title": "Pressure Question",
+      "script": "She leans back slightly. She says: 'Let me put it differently. If you joined our team tomorrow and the main service went down, what would be your first steps?'",
+      "options": [
+        {
+          "condition": "Player describes a calm, systematic approach: check monitoring, communicate with team, isolate the issue, prioritize",
+          "nodeId": "node-05"
+        },
+        {
+          "condition": "Player shows panic, no structure, or unrealistic answers that suggest lack of experience",
+          "nodeId": "lose-technical"
+        }
+      ],
+      "fallbackNodeId": "node-05"
+    },
+    {
+      "id": "node-05",
+      "title": "Why This Company",
+      "script": "She smiles. She says: 'We're getting close to the end. Why do you want to work here specifically? What excites you about this role?'",
+      "options": [
+        {
+          "condition": "Player shows genuine knowledge of the company, connects their skills to the role, and expresses authentic enthusiasm",
+          "nodeId": "node-06-closing"
+        },
+        {
+          "condition": "Player gives generic answers that could apply to any company, showing no research or real interest",
+          "nodeId": "node-06-closing-neutral"
+        }
+      ],
+      "fallbackNodeId": "node-06-closing"
+    },
+    {
+      "id": "node-05-skeptical",
+      "title": "Authenticity Check",
+      "script": "She raises an eyebrow slightly. She says: 'I appreciate the positivity, but I'm curious — what's something you genuinely struggled with and how did it change your approach?'",
+      "options": [
+        {
+          "condition": "Player opens up with a real struggle, showing vulnerability and genuine growth",
+          "nodeId": "node-06-closing"
+        },
+        {
+          "condition": "Player continues to dodge, gives another non-answer, or remains inauthentic",
+          "nodeId": "lose-attitude"
+        }
+      ],
+      "fallbackNodeId": "node-06-closing"
+    },
+    {
+      "id": "node-06-closing",
+      "title": "Interview Success",
+      "script": "She closes her notebook and gives a warm, genuine smile. She says: 'This has been a great conversation. I'm impressed with your experience and how you think about problems. We'll be in touch very soon — I have a really good feeling about this.'",
+      "options": []
+    },
+    {
+      "id": "node-06-closing-neutral",
+      "title": "Interview — On the Fence",
+      "script": "She nods politely. She says: 'Thank you for your time today. We have a few more candidates to meet, but we'll definitely be in touch with next steps.' Professional but non-committal.",
+      "options": []
+    },
+    {
+      "id": "lose-attitude",
+      "title": "Interview Failed — Attitude",
+      "script": "She pauses, then closes her notebook. She says: 'Thank you for coming in. I think we're looking for a slightly different fit for this role. We appreciate your time.' Polite but final.",
+      "options": []
+    },
+    {
+      "id": "lose-credibility",
+      "title": "Interview Failed — Credibility",
+      "script": "She stops writing and looks up. She says: 'I appreciate you coming in today. I'll be honest — I think there might be a gap between what we need and where you are right now. But I wish you the best.' Direct but respectful.",
+      "options": []
+    },
+    {
+      "id": "lose-technical",
+      "title": "Interview Failed — Technical",
+      "script": "She sets her pen down and sighs slightly. She says: 'Thank you for your time. The role requires a strong technical foundation and I think you'd benefit from more hands-on experience first. Let's keep in touch for the future.' Kind but clear.",
+      "options": []
+    }
+  ]
+}
