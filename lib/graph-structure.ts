@@ -8,6 +8,18 @@ export const nodeSchema = z.object({
     .describe(
       "The content of what the scenario will show / say in this video segment. This can be a descriptive script or a dialogue."
     ),
+  toast: z
+    .object({
+      message: z
+        .string()
+        .describe(
+          "The message to display to the user when this node is visited."
+        ),
+      type: z
+        .enum(["positive", "negative", "neutral"])
+        .describe("The type of toast to display."),
+    })
+    .optional(),
   options: z
     .array(
       z.object({

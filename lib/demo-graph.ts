@@ -1,7 +1,7 @@
 import type { GraphStructure } from "./graph-structure";
 
 export const demoGraph: GraphStructure = {
-  title: "Interview Scenario — Phased Conversation Graph",
+  title: "Interview Scenario",
   startImageUrl: "https://via.placeholder.com/150",
   prompt:
     "Interviewer-led conversation with five phases: Introduction, Background, Soft Skills, Projection & Values, Closure.",
@@ -182,7 +182,7 @@ export const demoGraph: GraphStructure = {
 
 // ─── Date Game — Café/bar cosy early date, 5 criteria overlay checkpoints ───
 export const dateGameGraph: GraphStructure = {
-  title: "Date Game — Full Node Content",
+  title: "Date Game",
   startImageUrl: "https://via.placeholder.com/150",
   prompt:
     "Café/bar cosy early date. She is calm, slightly ironic, never explicit about rules. Five criteria: No flexing, No alcohol, Emotionally mature, Can sing, Respectful.",
@@ -235,11 +235,15 @@ export const dateGameGraph: GraphStructure = {
         { condition: "self-centered", nodeId: "LOSE_RESPECT" },
       ],
     },
-    // ─── NODE 05 — Flex Follow-Up (Flexer confirmation) ───
+    // ─── NODE 05 — Flex Follow-Up (Flexer confirmation) [OVERLAY 1/5] ───
     {
       id: "NODE_05_FLEX_FOLLOWUP",
       title: "Flex Follow-Up",
       script: "That sounds intense. Do you ever just… switch off and relax?",
+      toast: {
+        message: "No flexing",
+        type: "positive",
+      },
       options: [
         {
           condition: "self-aware / laughs about it",
@@ -260,11 +264,15 @@ export const dateGameGraph: GraphStructure = {
         { condition: "alcohol-centered lifestyle", nodeId: "NODE_07_DRINK" },
       ],
     },
-    // ─── NODE 07 — The Drink Moment (Alcohol, Respect) ───
+    // ─── NODE 07 — The Drink Moment (Alcohol, Respect) [OVERLAY 2/5] ───
     {
       id: "NODE_07_DRINK",
       title: "The Drink Moment",
       script: "I'm not sure what to get. You can choose for me.",
+      toast: {
+        message: "Doesn't drink alcohol",
+        type: "positive",
+      },
       options: [
         {
           condition: "non-alcoholic / asks preferences",
@@ -289,12 +297,16 @@ export const dateGameGraph: GraphStructure = {
         { condition: "blames ex / victim speech", nodeId: "LOSE_VICTIM" },
       ],
     },
-    // ─── NODE 09 — Growth & Self-Awareness (Victim confirmation) ───
+    // ─── NODE 09 — Growth & Self-Awareness (Victim confirmation) [OVERLAY 3/5] ───
     {
       id: "NODE_09_GROWTH",
       title: "Growth & Self-Awareness",
       script:
         "And looking back at that, what do you think you learned about yourself?",
+      toast: {
+        message: "Emotionally mature",
+        type: "positive",
+      },
       options: [
         { condition: "shows accountability", nodeId: "NODE_11_MUSIC" },
         { condition: "avoids responsibility", nodeId: "LOSE_VICTIM" },
@@ -324,11 +336,15 @@ export const dateGameGraph: GraphStructure = {
         { condition: "neutral", nodeId: "NODE_12_SINGING" },
       ],
     },
-    // ─── NODE 12 — Singing Test (Effort > talent) ───
+    // ─── NODE 12 — Singing Test (Effort > talent) [OVERLAY 4/5] ───
     {
       id: "NODE_12_SINGING",
       title: "Singing Test",
       script: "So… could you sing something? Even just a few seconds.",
+      toast: {
+        message: "Can sing",
+        type: "positive",
+      },
       options: [
         {
           condition: "accepts and sings (even badly)",
@@ -338,11 +354,15 @@ export const dateGameGraph: GraphStructure = {
         { condition: "refuses harshly / kills vibe", nodeId: "LOSE_SINGING" },
       ],
     },
-    // ─── NODE 13 — Final Chemistry Check (Respect final) ───
+    // ─── NODE 13 — Final Chemistry Check (Respect final) [OVERLAY 5/5] ───
     {
       id: "NODE_13_CHEMISTRY",
       title: "Final Chemistry Check",
       script: "I had a nice time tonight. How did you feel about it?",
+      toast: {
+        message: "Respectful",
+        type: "positive",
+      },
       options: [
         { condition: "calm, respectful, engaged", nodeId: "NODE_14_CLOSING" },
         { condition: "slightly awkward but OK", nodeId: "NODE_14_CLOSING" },
@@ -361,30 +381,35 @@ export const dateGameGraph: GraphStructure = {
       id: "LOSE_RESPECT",
       title: "Lose (respect)",
       script: "Date ends awkwardly. She never explains why.",
+      toast: { message: "Not respectful", type: "negative" },
       options: [],
     },
     {
       id: "LOSE_FLEXER",
       title: "Lose (flexer)",
       script: "Date ends awkwardly. She never explains why.",
+      toast: { message: "Flexer detected", type: "negative" },
       options: [],
     },
     {
       id: "LOSE_ALCOHOL",
       title: "Lose (alcohol)",
       script: "Date ends awkwardly. She never explains why.",
+      toast: { message: "Orders alcohol", type: "negative" },
       options: [],
     },
     {
       id: "LOSE_VICTIM",
       title: "Lose (victim)",
       script: "Date ends awkwardly. She never explains why.",
+      toast: { message: "Ex-drama / victim mindset", type: "negative" },
       options: [],
     },
     {
       id: "LOSE_SINGING",
       title: "Lose (singing)",
       script: "Date ends awkwardly. She never explains why.",
+      toast: { message: "Refuses to sing", type: "negative" },
       options: [],
     },
   ],
@@ -393,7 +418,5 @@ export const dateGameGraph: GraphStructure = {
 /** Registry of scenario graphs by slug for /play/[id] */
 export const demoGraphs: Record<string, GraphStructure> = {
   interview: demoGraph,
-  demo: demoGraph,
-  "date-game": dateGameGraph,
   date: dateGameGraph,
 };

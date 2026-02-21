@@ -49,8 +49,10 @@ export function SpeechToTextDemo() {
         }
       };
 
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
+      recorder.onstop = () => {
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
         const blob = new Blob(chunksRef.current, {
           type: recorder.mimeType || "audio/webm",
         });

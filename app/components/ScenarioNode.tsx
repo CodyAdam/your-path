@@ -1,21 +1,24 @@
 "use client";
 
-import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
 import { memo } from "react";
 
-export type ScenarioNodeData = {
-  label: string;
-  script: string;
-  isStart?: boolean;
-  optionCount?: number;
-};
+export type ScenarioNodeType = Node<
+  {
+    isStart?: boolean;
+    label: string;
+    optionCount?: number;
+    script: string;
+  },
+  "scenario"
+>;
 
 const scriptPreview = (script: string, maxLen = 80) =>
-  script.length <= maxLen ? script : script.slice(0, maxLen).trim() + "…";
+  script.length <= maxLen ? script : `${script.slice(0, maxLen).trim()}…`;
 
-function ScenarioNodeComponent(props: NodeProps) {
+function ScenarioNodeComponent(props: NodeProps<ScenarioNodeType>) {
   const { data, selected } = props;
-  const d = (data ?? {}) as ScenarioNodeData;
+  const d = data ?? { label: "", script: "" };
   const preview = scriptPreview(d.script ?? "");
 
   return (
@@ -24,11 +27,7 @@ function ScenarioNodeComponent(props: NodeProps) {
         ${d.isStart ? "border-amber-400 ring-2 ring-amber-400/50 dark:border-amber-500" : ""}
       `}
     >
-      <Handle
-        className="!w-2 !h-2 !border-2 !bg-white dark:!bg-zinc-800"
-        position={Position.Top}
-        type="target"
-      />
+      <Handle position={Position.Top} type="target" />
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
@@ -49,11 +48,7 @@ function ScenarioNodeComponent(props: NodeProps) {
           </p>
         )}
       </div>
-      <Handle
-        className="!w-2 !h-2 !border-2 !bg-white dark:!bg-zinc-800"
-        position={Position.Bottom}
-        type="source"
-      />
+      <Handle position={Position.Bottom} type="source" />
     </div>
   );
 }

@@ -17,10 +17,10 @@ import { ScenarioNode } from "./ScenarioNode";
 
 const nodeTypes = { scenario: ScenarioNode };
 
-type GraphFlowProps = {
-  graph: GraphStructure;
+interface GraphFlowProps {
   className?: string;
-};
+  graph: GraphStructure;
+}
 
 export function GraphFlow({ graph, className }: GraphFlowProps) {
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
@@ -28,8 +28,8 @@ export function GraphFlow({ graph, className }: GraphFlowProps) {
     [graph]
   );
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, _setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, _setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const defaultEdgeOptions = useMemo(
     () => ({
@@ -62,9 +62,9 @@ export function GraphFlow({ graph, className }: GraphFlowProps) {
           gap={16}
           size={0.5}
         />
-        <Controls className="!shadow-md !border-zinc-200 dark:!border-zinc-700 dark:!bg-zinc-800" />
+        <Controls className="border-zinc-200 bg-zinc-800 shadow-md dark:border-zinc-700 dark:bg-zinc-800" />
         <MiniMap
-          className="!bg-zinc-100 dark:!bg-zinc-800 !border border-zinc-200 dark:border-zinc-700"
+          className="border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800"
           maskColor="rgb(240 240 245 / 0.7)"
           nodeStrokeWidth={2}
         />
