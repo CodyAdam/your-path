@@ -1,7 +1,5 @@
-import { AudioProcessor } from "./types";
+import type { AudioProcessor } from "./types";
 
-export const speechToEmotion: AudioProcessor = async (
-    file: Blob
-  ) => {
-    return { result: "happy" };
+export const speechToEmotion: AudioProcessor = async (file: Blob) => {
+  return { result: "happy" };
 };

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection de visage MediaPipe</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin-top: 50px;
+        }
+        .container {
+            position: relative;
+        }
+        /* La vidéo sert de source, mais doit rester visible (hidden, pas display: none) pour capture correcte */
+        video {
+            visibility: hidden; 
+            width: 640px;
+            height: 480px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* Le Canvas est l'endroit où l'on dessine l'image + le carré rouge */
+        canvas {
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: black;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        }
+        #debug {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 14px 20px;
+            font-size: 15px;
+            color: #252525;
+            min-width: 500px;
+            max-width: 90vw;
+            word-break: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        #debug pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: #293044;
+            background: #f7f7f7;
+            border-radius: 4px;
+            padding: 7px 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Étape 1 : Détection en temps réel avec MediaPipe</h2>
+    
+    <div class="container">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="output_canvas" width="640" height="480"></canvas>
+    </div>
+    <div id="debug">
+      <b>Face Recognition Debug Info:</b>
+      <div id="debug-data">Chargement...</div>
+    </div>
+
+    <script>
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const debugElement = document.getElementById('debug-data');
+
+        // Affiche la frame succesfully obtenue de la webcam
+        function onResults(results) {
+            // Clear le canvas
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Vérification de results.image (affiche erreur dans debug si manquant)
+            if (!results.image) {
+                debugElement.innerHTML = "<b style='color: red;'>Erreur :</b> Aucune image de webcam reçue !";
+                return;
+            }
+
+            // Affiche la frame webcam sur le canvas
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            // Debug output: nombre de visages détectés et bbox
+            let debugInfo = {
+                numDetections: results.detections ? results.detections.length : 0,
+                boundingBoxes: []
+            };
+
+            // Afficher les rectangles et remplir debug
+            if (results.detections && results.detections.length > 0) {
+                for (let i = 0; i < results.detections.length; i++) {
+                    const detection = results.detections[i];
+                    const boundingBox = detection.boundingBox;
+
+                    // Les coordonnées renvoyées sont des pourcentages (de 0 à 1)
+                    const x = boundingBox.xCenter * canvasElement.width - (boundingBox.width * canvasElement.width / 2);
+                    const y = boundingBox.yCenter * canvasElement.height - (boundingBox.height * canvasElement.height / 2);
+                    const width = boundingBox.width * canvasElement.width;
+                    const height = boundingBox.height * canvasElement.height;
+
+                    debugInfo.boundingBoxes.push({
+                        x: Math.round(x),
+                        y: Math.round(y),
+                        width: Math.round(width),
+                        height: Math.round(height),
+                        confidence: detection.score ? (detection.score[0] * 100).toFixed(1) + '%' : 'N/A'
+                    });
+
+                    // Rectangle rouge autour du visage détecté
+                    canvasCtx.beginPath();
+                    canvasCtx.rect(x, y, width, height);
+                    canvasCtx.lineWidth = 3;
+                    canvasCtx.strokeStyle = 'red';
+                    canvasCtx.stroke();
+
+                    // Affiche la confiance sur le rectangle
+                    canvasCtx.font = "bold 18px Arial";
+                    canvasCtx.fillStyle = "rgba(255,255,255,0.85)";
+                    canvasCtx.fillRect(x, y - 26, 70, 24);
+                    canvasCtx.fillStyle = "red";
+                    canvasCtx.fillText(
+                        detection.score ? (detection.score[0] * 100).toFixed(1) + '%' : "",
+                        x + 6,
+                        y - 8
+                    );
+                }
+            }
+
+            // Show debug as pretty JSON
+            debugElement.innerHTML = 
+                "<b>Visages trouvés :</b> " + debugInfo.numDetections +
+                " <br><pre>" + JSON.stringify(debugInfo.boundingBoxes, null, 2) + "</pre>";
+        }
+
+        // Initialisation du modèle MediaPipe Face Detection
+        const faceDetection = new FaceDetection({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/${file}`;
+        }});
+
+        faceDetection.setOptions({
+            modelSelection: 0, // 0 : visages proches
+            minDetectionConfidence: 0.5
+        });
+
+        faceDetection.onResults(onResults);
+
+        // Démarrer la webcam et la détection seulement après autorisation webcam ok
+        async function startFaceDetection() {
+            debugElement.innerHTML = "Démarrage webcam…";
+            try {
+                // Force la vidéo à la bonne taille dès la demande de la webcam
+                videoElement.width = 640;
+                videoElement.height = 480;
+
+                // getUserMedia pour une compatibilité fiable
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                videoElement.srcObject = stream;
+
+                // Attendre que la video soit prête (can play)
+                await new Promise((resolve) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play();
+                        resolve();
+                    };
+                });
+
+                // Camera MediaPipe s'occupe du stream du videoElement
+                const camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await faceDetection.send({image: videoElement});
+                    },
+                    width: 640,
+                    height: 480
+                });
+
+                camera.start();
+                debugElement.innerHTML = "Webcam démarrée, détection active…";
+            } catch (err) {
+                debugElement.innerHTML = "<b style='color:red;'>Erreur webcam:</b> " + (err.message || err);
+            }
+        }
+
+        // Démarre tout
+        startFaceDetection();
+    </script>
+</body>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détection de visage MediaPipe</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin-top: 50px;
+        }
+        .container {
+            position: relative;
+        }
+        /* Utilisez visibility: hidden (et pas display: none) pour permettre à MediaPipe d'utiliser la vidéo */
+        video {
+            visibility: hidden; 
+            width: 640px;
+            height: 480px;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        canvas {
+            border: 3px solid #333;
+            border-radius: 10px;
+            background-color: black;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+        }
+        #debug {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 14px 20px;
+            font-size: 15px;
+            color: #252525;
+            min-width: 500px;
+            max-width: 90vw;
+            word-break: break-word;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        #debug pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: #293044;
+            background: #f7f7f7;
+            border-radius: 4px;
+            padding: 7px 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Étape 1 : Détection en temps réel avec MediaPipe</h2>
+    
+    <div class="container">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="output_canvas" width="640" height="480"></canvas>
+    </div>
+    <div id="debug">
+        <b>Face Recognition Debug Info:</b>
+        <div id="debug-data">Chargement...</div>
+    </div>
+
+    <script>
+        // Empêche la demande de permission 2x : NE PAS utiliser Camera(MediaPipe) qui demande getUserMedia automatiquement!
+        // Gérez explicitement getUserMedia, puis transmettez la vidéo à FaceDetection via send().
+        // PAS DE Camera() donc PAS de double permission.
+
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const debugElement = document.getElementById('debug-data');
+
+        let running = false;
+        let animationFrameId = null;
+
+        function drawFrameAndDetect() {
+            // une itération : envoie la frame courante à faceDetection
+            if (!running) return;
+            faceDetection.send({image: videoElement});
+        }
+
+        function onResults(results) {
+            // Vide le canvas
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Vérification de results.image
+            if (!results.image) {
+                debugElement.innerHTML = "<b style='color: red;'>Erreur :</b> Aucune image de webcam reçue !";
+                return;
+            }
+
+            // Affiche la frame webcam sur le canvas
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            // Debug output: nombre de visages détectés et bbox
+            let debugInfo = {
+                numDetections: results.detections ? results.detections.length : 0,
+                boundingBoxes: []
+            };
+
+            // Afficher les rectangles et remplir debug
+            if (results.detections && results.detections.length > 0) {
+                for (let i = 0; i < results.detections.length; i++) {
+                    const detection = results.detections[i];
+                    const boundingBox = detection.boundingBox;
+
+                    // Les coordonnées renvoyées sont des pourcentages (de 0 à 1)
+                    const x = boundingBox.xCenter * canvasElement.width - (boundingBox.width * canvasElement.width / 2);
+                    const y = boundingBox.yCenter * canvasElement.height - (boundingBox.height * canvasElement.height / 2);
+                    const width = boundingBox.width * canvasElement.width;
+                    const height = boundingBox.height * canvasElement.height;
+
+                    debugInfo.boundingBoxes.push({
+                        x: Math.round(x),
+                        y: Math.round(y),
+                        width: Math.round(width),
+                        height: Math.round(height),
+                        confidence: detection.score ? (detection.score[0] * 100).toFixed(1) + '%' : 'N/A'
+                    });
+
+                    // Rectangle rouge autour du visage détecté
+                    canvasCtx.beginPath();
+                    canvasCtx.rect(x, y, width, height);
+                    canvasCtx.lineWidth = 3;
+                    canvasCtx.strokeStyle = 'red';
+                    canvasCtx.stroke();
+
+                    // Affiche la confiance sur le rectangle
+                    canvasCtx.font = "bold 18px Arial";
+                    canvasCtx.fillStyle = "rgba(255,255,255,0.85)";
+                    canvasCtx.fillRect(x, y - 26, 70, 24);
+                    canvasCtx.fillStyle = "red";
+                    canvasCtx.fillText(
+                        detection.score ? (detection.score[0] * 100).toFixed(1) + '%' : "",
+                        x + 6,
+                        y - 8
+                    );
+                }
+            }
+
+            // Show debug as pretty JSON
+            debugElement.innerHTML =
+                "<b>Visages trouvés :</b> " + debugInfo.numDetections +
+                " <br><pre>" + JSON.stringify(debugInfo.boundingBoxes, null, 2) + "</pre>";
+
+            // Schedule next detection (pour garder la cadence en live)
+            if (running) {
+                animationFrameId = requestAnimationFrame(drawFrameAndDetect);
+            }
+        }
+
+        // Initialisation du modèle MediaPipe Face Detection
+        const faceDetection = new FaceDetection({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/${file}`;
+        }});
+
+        faceDetection.setOptions({
+            modelSelection: 0, // 0 : visages proches
+            minDetectionConfidence: 0.5
+        });
+
+        faceDetection.onResults(onResults);
+
+        async function startFaceDetection() {
+            debugElement.innerHTML = "Démarrage webcam…";
+            try {
+                videoElement.width = 640;
+                videoElement.height = 480;
+                // Utiliser getUserMedia une seule fois
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                videoElement.srcObject = stream;
+
+                // Attendre que la video soit prête
+                await new Promise((resolve) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play();
+                        resolve();
+                    };
+                });
+
+                running = true;
+                animationFrameId = requestAnimationFrame(drawFrameAndDetect);
+
+                debugElement.innerHTML = "Webcam démarrée, détection en cours…";
+            } catch (err) {
+                running = false;
+                debugElement.innerHTML = "<b style='color:red;'>Erreur webcam:</b> " + (err && err.message ? err.message : err);
+            }
+        }
+
+        // Pour éviter plusieurs appels détecter/permission, on purge à l'unload
+        window.addEventListener('beforeunload', () => {
+            running = false;
+            if (animationFrameId != null) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            // Stop toutes les tracks webcam si une page est quittée
+            if (videoElement.srcObject) {
+                const tracks = videoElement.srcObject.getTracks();
+                for (let t of tracks) t.stop();
+            }
+        });
+
+        // Démarre tout
+        startFaceDetection();
+    </script>
+</body>
+</html>

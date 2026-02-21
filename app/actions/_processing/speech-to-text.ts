@@ -9,10 +9,7 @@ const client = new ElevenLabsClient({
   apiKey: process.env.ELEVENLABS_API_KEY,
 });
 
-
-export const speechToText: AudioProcessor = async (
-  file: Blob
-) => {
+export const speechToText: AudioProcessor = async (file: Blob) => {
   const data = await client.speechToText.convert({
     file,
     modelId: "scribe_v2",
