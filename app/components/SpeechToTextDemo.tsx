@@ -1,6 +1,8 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { analyseAudio } from "@/app/actions/analyse-audio";
 
 type Status = "idle" | "recording" | "sending" | "done" | "error";
 
@@ -12,6 +14,18 @@ export function SpeechToTextDemo() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  const uploadMutation = useMutation({
+    mutationFn: (formData: FormData) => analyseAudio(formData),
+    onSuccess: (data) => {
+      setTranscript(data.speechToText.result ?? "");
+      setStatus("done");
+    },
+    onError: (err: Error) => {
+      setError(err.message ?? "Upload failed");
+      setStatus("error");
+    },
+  });
+
   useEffect(() => {
     return () => {
       if (playbackUrl) URL.revokeObjectURL(playbackUrl);
@@ -21,6 +35,7 @@ export function SpeechToTextDemo() {
   const startRecording = useCallback(async () => {
     setError("");
     setTranscript("");
+    uploadMutation.reset();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -41,20 +56,7 @@ export function SpeechToTextDemo() {
 
         const form = new FormData();
         form.append("audio", blob, "recording.webm");
-
-        const res = await fetch("/api/analyse-audio", {
-          method: "POST",
-          body: form,
-        });
-
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          setError(json.error ?? `Request failed (${res.status})`);
-          setStatus("error");
-          return;
-        }
-        setTranscript(json.text ?? "");
-        setStatus("done");
+        uploadMutation.mutate(form);
       };
 
       recorder.start();
@@ -64,7 +66,7 @@ export function SpeechToTextDemo() {
       setError(e instanceof Error ? e.message : "Could not start microphone");
       setStatus("error");
     }
-  }, []);
+  }, [uploadMutation]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && status === "recording") {
@@ -81,7 +83,16 @@ export function SpeechToTextDemo() {
     setStatus("idle");
     setTranscript("");
     setError("");
-  }, []);
+    uploadMutation.reset();
+  }, [uploadMutation]);
+
+  const mutationError =
+    uploadMutation.isError && uploadMutation.error
+      ? uploadMutation.error instanceof Error
+        ? uploadMutation.error.message
+        : String(uploadMutation.error)
+      : null;
+  const displayError = error || mutationError;
 
   return (
     <div className="flex w-full max-w-lg flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -89,7 +100,7 @@ export function SpeechToTextDemo() {
         Speech to text (ElevenLabs Scribe v2)
       </h2>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Record, then we’ll send the full audio to the server and show the transcription.
+        Record, then we'll send the full audio to the server and show the transcription.
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -123,9 +134,9 @@ export function SpeechToTextDemo() {
       </div>
 
       {status === "recording" && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">Recording… click “Stop & transcribe” when done.</p>
+        <p className="text-sm text-amber-600 dark:text-amber-400">Recording… click "Stop & transcribe" when done.</p>
       )}
-      {status === "sending" && (
+      {(status === "sending" || uploadMutation.isPending) && (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">Transcribing…</p>
       )}
       {playbackUrl && (
@@ -141,8 +152,8 @@ export function SpeechToTextDemo() {
           />
         </div>
       )}
-      {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      {displayError && (
+        <p className="text-sm text-red-600 dark:text-red-400">{displayError}</p>
       )}
       {transcript && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
