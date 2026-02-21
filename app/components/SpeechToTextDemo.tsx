@@ -28,7 +28,9 @@ export function SpeechToTextDemo() {
 
   useEffect(() => {
     return () => {
-      if (playbackUrl) URL.revokeObjectURL(playbackUrl);
+      if (playbackUrl) {
+        URL.revokeObjectURL(playbackUrl);
+      }
     };
   }, [playbackUrl]);
 
@@ -42,14 +44,22 @@ export function SpeechToTextDemo() {
       chunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
       };
 
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+      recorder.onstop = () => {
+        for (const track of stream.getTracks()) {
+          track.stop();
+        }
+        const blob = new Blob(chunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
         setPlaybackUrl((prev) => {
-          if (prev) URL.revokeObjectURL(prev);
+          if (prev) {
+            URL.revokeObjectURL(prev);
+          }
           return URL.createObjectURL(blob);
         });
         setStatus("sending");
@@ -77,7 +87,9 @@ export function SpeechToTextDemo() {
 
   const reset = useCallback(() => {
     setPlaybackUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
       return null;
     });
     setStatus("idle");
@@ -96,37 +108,38 @@ export function SpeechToTextDemo() {
 
   return (
     <div className="flex w-full max-w-lg flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <h2 className="font-semibold text-lg text-zinc-900 dark:text-zinc-100">
         Speech to text (ElevenLabs Scribe v2)
       </h2>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        Record, then we'll send the full audio to the server and show the transcription.
+        Record, then we'll send the full audio to the server and show the
+        transcription.
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
         {status === "idle" && (
           <button
-            type="button"
+            className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-sm text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             onClick={startRecording}
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            type="button"
           >
             Start recording
           </button>
         )}
         {status === "recording" && (
           <button
-            type="button"
+            className="rounded-lg bg-red-600 px-4 py-2 font-medium text-sm text-white hover:bg-red-700"
             onClick={stopRecording}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            type="button"
           >
             Stop & transcribe
           </button>
         )}
         {(status === "done" || status === "error") && (
           <button
-            type="button"
+            className="rounded-lg border border-zinc-300 px-4 py-2 font-medium text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
             onClick={reset}
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            type="button"
           >
             Record again
           </button>
@@ -134,30 +147,34 @@ export function SpeechToTextDemo() {
       </div>
 
       {status === "recording" && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">Recording… click "Stop & transcribe" when done.</p>
+        <p className="text-amber-600 text-sm dark:text-amber-400">
+          Recording… click "Stop & transcribe" when done.
+        </p>
       )}
       {(status === "sending" || uploadMutation.isPending) && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Transcribing…</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Transcribing…
+        </p>
       )}
       {playbackUrl && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p className="mb-2 font-medium text-xs text-zinc-500 uppercase tracking-wide dark:text-zinc-400">
             Playback
           </p>
           <audio
-            src={playbackUrl}
-            controls
             className="w-full"
+            controls
             preload="metadata"
+            src={playbackUrl}
           />
         </div>
       )}
       {displayError && (
-        <p className="text-sm text-red-600 dark:text-red-400">{displayError}</p>
+        <p className="text-red-600 text-sm dark:text-red-400">{displayError}</p>
       )}
       {transcript && (
         <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p className="font-medium text-xs text-zinc-500 uppercase tracking-wide dark:text-zinc-400">
             Transcript
           </p>
           <p className="mt-1 whitespace-pre-wrap text-zinc-900 dark:text-zinc-100">
