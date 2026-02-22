@@ -1,18 +1,14 @@
 "use server";
 
-import { vertex } from "@ai-sdk/google-vertex";
 import { put } from "@vercel/blob";
-import { experimental_generateVideo as generateVideo } from "ai";
 import type { GraphStructure } from "@/lib/graph-structure";
 import { getStoryData, setStoryData } from "@/lib/redis";
+import { generateVideoFromImage } from "./_processing/video-generation";
 
-const VEO_MODEL_ID = "veo-3.1-fast-generate-001" as const;
-const DEFAULT_DURATION = 6; // Veo 3.1 supports 4, 6, 8 seconds
-const ASPECT_RATIO = "16:9" as const;
-const RESOLUTION = "1280x720" as const;
+const DEFAULT_DURATION = 5; // Seedance (Fal) duration in seconds
 
 export interface GenerateStoryVideoInput {
-  /** Duration in seconds. Veo 3.1 supports 4, 6, or 8. */
+  /** Duration in seconds (Fal Seedance). */
   duration?: number;
   /** Image URL (https) or base64 data URI to animate. */
   imageUrl: string;
@@ -31,62 +27,44 @@ export type GenerateStoryVideoResult =
   | { success: false; error: string };
 
 /**
- * Generate a short video from an image + prompt using AI SDK and Veo 3.1 Fast,
+ * Generate a short video from an image + prompt using Fal (Seedance),
  * upload to Vercel Blob, and optionally update the Redis graph (node videoUrl or idleVideoUrl).
  */
 export async function generateStoryVideo(
   input: GenerateStoryVideoInput
 ): Promise<GenerateStoryVideoResult> {
   const duration = input.duration ?? DEFAULT_DURATION;
-  const clampedDuration = clampVeoDuration(duration);
 
   try {
-    const model = vertex.video(VEO_MODEL_ID);
-
-    const { video } = await generateVideo({
-      model,
-      prompt: {
-        image: input.imageUrl,
-        text: input.prompt,
-      },
-      aspectRatio: ASPECT_RATIO,
-      resolution: RESOLUTION,
-      duration: clampedDuration,
-      providerOptions: {
-        vertex: {
-          generateAudio: false,
-          pollTimeoutMs: 600_000, // 10 min
-        },
-      },
+    const { videoUrl: falVideoUrl } = await generateVideoFromImage({
+      imageUrl: input.imageUrl,
+      prompt: input.prompt,
+      duration,
     });
+
+    const res = await fetch(falVideoUrl);
+    if (!res.ok) {
+      throw new Error(
+        `Failed to download generated video: ${res.status} ${res.statusText}`
+      );
+    }
+    const videoBuffer = Buffer.from(await res.arrayBuffer());
 
     const blobPath = buildBlobPath(input);
 
-    const blob = await put(blobPath, Buffer.from(video.uint8Array), {
+    const blob = await put(blobPath, videoBuffer, {
       access: "public",
-      contentType: video.mediaType ?? "video/mp4",
+      contentType: "video/mp4",
     });
 
-    const videoUrl = blob.url;
+    await maybeUpdateGraph(input, blob.url);
 
-    await maybeUpdateGraph(input, videoUrl);
-
-    return { success: true, videoUrl };
+    return { success: true, videoUrl: blob.url };
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Video generation failed.";
     return { success: false, error: message };
   }
-}
-
-function clampVeoDuration(seconds: number): 4 | 6 | 8 {
-  if (seconds <= 4) {
-    return 4;
-  }
-  if (seconds <= 6) {
-    return 6;
-  }
-  return 8;
 }
 
 function buildBlobPath(input: GenerateStoryVideoInput): string {
