@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { LucidePhoneOff, LucideRotateCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { selectPath } from "@/app/actions/select-path";
@@ -27,7 +26,6 @@ export function PlayClient({
   graph: GraphStructure;
   id: string;
 }) {
-  const router = useRouter();
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(
     graph.startNodeId
   );

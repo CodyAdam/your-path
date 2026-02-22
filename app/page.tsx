@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PromptInputProvider } from "@/components/ai-elements/prompt-input";
 import LogoLoop, { type LogoItem } from "@/components/LogoLoop";
+import PrismaticBurst from "@/components/PrismaticBurst";
 import { RiGithubFill } from "@/components/RiGithubFill";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,11 +47,26 @@ export default function Home() {
   return (
     <PromptInputProvider>
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+        <div className="absolute top-0 left-0 h-screen w-full">
+          <PrismaticBurst
+            animationType="rotate3d"
+            colors={["#ff007a", "#4d3dff", "#ffffff"]}
+            distort={0}
+            hoverDampness={0.25}
+            intensity={2}
+            mixBlendMode="lighten"
+            offset={{ x: 0, y: 0 }}
+            paused={false}
+            rayCount={0}
+            speed={0.5}
+          />
+        </div>
         <main className="flex h-full flex-1 flex-col items-center justify-center gap-8 border-l px-4 py-24">
           <h1 className="my-12 max-w-2xl text-center font-sans font-semibold text-4xl text-zinc-900 tracking-tight sm:text-5xl dark:text-zinc-50">
             Build your own AI generated interactive stories
           </h1>
           <CreateStory />
+
           <LogoLoop
             ariaLabel="Technology partners"
             className="mt-12 w-full max-w-3xl"
