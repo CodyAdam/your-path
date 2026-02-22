@@ -54,6 +54,15 @@ The result: **one idea → one generated world → one responsive playthrough**,
 
 **Summary:** The main app uses **Google (Gemini)** for story generation and path selection, **ElevenLabs** for STT, and **MediaPipe + ONNX** for face/emotion in the browser. **Anthropic** and **FAL.ai** are used in standalone scripts (prompts, image/video generation), not in the core request path.
 
+### Training datasets (custom models)
+
+The on-device/browser emotion models were trained on the following public datasets:
+
+| Model | Dataset | Link |
+|-------|---------|------|
+| **Speech emotion** | MELD (Multimodal EmotionLines Dataset) | [MELD.Raw](https://web.eecs.umich.edu/~mihalcea/downloads/MELD.Raw.tar.gz) (University of Michigan) |
+| **Face emotion** | AffectNet | [AffectNet on Kaggle](https://www.kaggle.com/datasets/mstjebashazida/affectnet/data) |
+
 ---
 
 ## Getting started

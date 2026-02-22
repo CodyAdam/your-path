@@ -6,6 +6,7 @@ import { PromptInputProvider } from "@/components/ai-elements/prompt-input";
 import LogoLoop, { type LogoItem } from "@/components/LogoLoop";
 import PrismaticBurst from "@/components/PrismaticBurst";
 import { RiGithubFill } from "@/components/RiGithubFill";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,6 +47,11 @@ const imageLogos: LogoItem[] = [
     alt: "Kaggle",
     href: "https://kaggle.com",
   },
+  {
+    src: "https://brand.umich.edu/assets/brand/style-guide/logo-guidelines/U-M_Logo-Horizontal-Hex.png",
+    alt: "University of Michigan",
+    href: "https://umich.edu/",
+  },
 ];
 
 export default function Home() {
@@ -67,9 +73,12 @@ export default function Home() {
           />
         </div>
         <main className="flex h-full flex-1 flex-col items-center justify-center gap-8 border-l px-4 py-24">
-          <h1 className="my-12 max-w-2xl text-center font-sans font-semibold text-4xl text-zinc-900 tracking-tight sm:text-5xl dark:text-zinc-50">
-            Build your own AI generated interactive stories
-          </h1>
+          <div className="my-12 flex flex-col items-center justify-center gap-4">
+            <Badge>Submission for Hackeurope 2026</Badge>
+            <h1 className="max-w-2xl text-center font-sans font-semibold text-4xl text-zinc-900 tracking-tight sm:text-5xl dark:text-zinc-50">
+              Build your own AI generated interactive stories
+            </h1>
+          </div>
           <CreateStory />
           <LogoLoop
             ariaLabel="Technology partners"
@@ -110,6 +119,18 @@ export default function Home() {
                 <RiGithubFill className="size-5" />
                 GitHub
               </Button>
+            </Link>
+            <Link href="https://codya.dev">
+              <Button variant="link">Cody Adam</Button>
+            </Link>
+            <Link href="https://www.linkedin.com/in/yongkang-zou/">
+              <Button variant="link">Yongkang Zou</Button>
+            </Link>
+            <Link href="https://www.linkedin.com/in/mayy-miled/">
+              <Button variant="link">Mayy Miled</Button>
+            </Link>
+            <Link href="https://www.linkedin.com/in/math%C3%A9o-quatreboeufs-30353225b/">
+              <Button variant="link">Mathéo Quatreboeufs</Button>
             </Link>
           </footer>
         </main>

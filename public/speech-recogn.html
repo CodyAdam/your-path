@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Voice Emotion AI</title>
+    <script
+      src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"
+    ></script>
+    <style>
+    body {
+      padding: 20px;
+      margin: 0;
+      font-family: sans-serif;
+      color: white;
+      text-align: center;
+      background: #121212;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Le Spectrogramme remplace la Webcam ! */
+    canvas#spectrogram {
+      width: 100%;
+      max-width: 300px;
+      height: 300px; /* On l'affiche en carré */
+      margin-bottom: 20px;
+      background-color: #000;
+      border: 2px solid #444;
+      border-radius: 8px;
+    }
+
+    .bars-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 15px;
+      background: #222;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .label {
+      width: 80px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #ddd;
+      text-align: left;
+    }
+    .bar-wrapper {
+      flex-grow: 1;
+      height: 16px;
+      margin: 0 10px;
+      overflow: hidden;
+      background: #333;
+      border-radius: 8px;
+    }
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      transition: width 0.1s ease-out;
+    }
+    .percent {
+      width: 50px;
+      font-size: 14px;
+      color: #aaa;
+      text-align: right;
+    }
+
+    .loader {
+      margin-bottom: 20px;
+      font-style: italic;
+      color: #aaa;
+    }
+    button {
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #000;
+      cursor: pointer;
+      background: #00ff88;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #00cc6a;
+    }
+
+    #bar-fill-0 {
+      background: #ff4757;
+    }
+    #bar-fill-1 {
+      background: #2ed573;
+    }
+    #bar-fill-2 {
+      background: #57606f;
+    }
+    #bar-fill-3 {
+      background: #ffa502;
+    }
+    #bar-fill-4 {
+      background: #7bed9f;
+    }
+    #bar-fill-5 {
+      background: #1e90ff;
+    }
+    #bar-fill-6 {
+      background: #ff6b81;
+    }
+    #bar-fill-7 {
+      background: #a4b0be;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>🎙️ IA d'Analyse Vocale</h1>
+    <p id="status" class="loader">En attente...</p>
+
+    <button id="start-btn">🎤 Activer le Micro</button>
+
+    <div class="container">
+      <canvas id="spectrogram" width="224" height="224"></canvas>
+
+      <div class="bars-container" id="bars-container"></div>
+    </div>
+
+    <script>
+    "use strict";
+    const CLASSES = [
+      "Colère",
+      "Dégoût",
+      "Peur",
+      "Joie",
+      "Neutre",
+      "Tristesse",
+      "Surprise",
+      "Autre",
+    ];
+
+    let session;
+    const canvas = document.getElementById("spectrogram");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const statusText = document.getElementById("status");
+    const barsContainer = document.getElementById("bars-container");
+    const startBtn = document.getElementById("start-btn");
+
+    // Variables Audio
+    let audioCtx, analyser, dataArray;
+
+    function initUI() {
+      barsContainer.innerHTML = "";
+      CLASSES.forEach((className, index) => {
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+                    <div class="label">${className}</div>
+                    <div class="bar-wrapper"><div class="bar-fill" id="bar-fill-${index}"></div></div>
+                    <div class="percent" id="percent-${index}">0%</div>
+                `;
+        barsContainer.appendChild(row);
+      });
+    }
+
+    async function loadModel() {
+      try {
+        statusText.innerText = "⏳ Chargement du modèle ONNX...";
+        session = await ort.InferenceSession.create(
+          "./emotion_model_web.onnx",
+          {
+            executionProviders: ["wasm"],
+          }
+        );
+        statusText.innerText = "✅ Prêt à écouter !";
+      } catch (e) {
+        statusText.innerText = "❌ Erreur de chargement du modèle.";
+        console.error(e);
+      }
+    }
+
+    // --- LA MAGIE AUDIO ---
+    async function startMicrophone() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+
+        // On force 16kHz comme dans Python !
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext({ sampleRate: 16_000 });
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512; // Pour avoir des fréquences détaillées
+        source.connect(analyser);
+
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        startBtn.style.display = "none";
+
+        // On lance les deux boucles : le dessin et l'IA
+        drawSpectrogramLoop();
+        predictLoop();
+      } catch (err) {
+        statusText.innerText = "❌ Erreur : Micro refusé ou introuvable.";
+      }
+    }
+
+    // Simule les couleurs "Magma" de Matplotlib (Python)
+    function getMagmaColor(val) {
+      const v = val / 255.0;
+      const r = Math.min(255, val * 2);
+      const g = val > 128 ? (val - 128) * 2 : 0;
+      const b = val < 128 ? val * 2 : 0;
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // --- 1. BOUCLE DE DESSIN (60 FPS) ---
+    function drawSpectrogramLoop() {
+      requestAnimationFrame(drawSpectrogramLoop);
+      if (!analyser) {
+        return;
+      }
+
+      analyser.getByteFrequencyData(dataArray);
+
+      // On décale l'image existante de 1 pixel vers la gauche (effet de défilement)
+      ctx.drawImage(canvas, 1, 0, 223, 224, 0, 0, 223, 224);
+
+      // On dessine la nouvelle colonne de son tout à droite (x=223)
+      for (let i = 0; i < 224; i++) {
+        // On map les fréquences (les graves en bas, les aigus en haut)
+        const bin = Math.floor((223 - i) * (dataArray.length / 224));
+        const val = dataArray[bin];
+
+        ctx.fillStyle = getMagmaColor(val);
+        ctx.fillRect(223, i, 1, 1);
+      }
+    }
+
+    // --- 2. BOUCLE DE L'IA ---
+    function preprocessImage(imageData) {
+      const { data, width, height } = imageData;
+      const float32Data = new Float32Array(3 * width * height);
+      const mean = [0.485, 0.456, 0.406];
+      const std = [0.229, 0.224, 0.225];
+
+      for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+        float32Data[j] = (data[i] / 255.0 - mean[0]) / std[0];
+        float32Data[j + width * height] =
+          (data[i + 1] / 255.0 - mean[1]) / std[1];
+        float32Data[j + 2 * width * height] =
+          (data[i + 2] / 255.0 - mean[2]) / std[2];
+      }
+      return new ort.Tensor("float32", float32Data, [1, 3, height, width]);
+    }
+
+    function softmax(arr) {
+      const max = Math.max(...arr);
+      const expArr = arr.map((x) => Math.exp(x - max));
+      const sum = expArr.reduce((a, b) => a + b, 0);
+      return expArr.map((x) => x / sum);
+    }
+
+    function updateUI(probabilities) {
+      probabilities.forEach((prob, index) => {
+        const percentValue = (prob * 100).toFixed(1);
+        const barFill = document.getElementById(`bar-fill-${index}`);
+        const percentText = document.getElementById(`percent-${index}`);
+        if (barFill && percentText) {
+          barFill.style.width = `${percentValue}%`;
+          percentText.innerText = `${percentValue}%`;
+          if (prob > 0.4) {
+            percentText.style.color = "#fff";
+            percentText.style.fontWeight = "bold";
+          } else {
+            percentText.style.color = "#aaa";
+            percentText.style.fontWeight = "normal";
+          }
+        }
+      });
+    }
+
+    async function predictLoop() {
+      if (session) {
+        // On récupère les pixels du spectrogramme qu'on vient de dessiner
+        const imageData = ctx.getImageData(0, 0, 224, 224);
+        const tensor = preprocessImage(imageData);
+
+        const feeds = { input: tensor };
+        const results = await session.run(feeds);
+
+        const outputArray = results.output.data;
+        const probabilities = softmax(Array.from(outputArray));
+
+        updateUI(probabilities);
+      }
+      // On fait une analyse toutes les 250ms pour laisser l'image se remplir de voix
+      setTimeout(predictLoop, 250);
+    }
+
+    startBtn.addEventListener("click", () => {
+      startMicrophone();
+    });
+
+    initUI();
+    loadModel();
+    </script>
+  </body>
+</html>
