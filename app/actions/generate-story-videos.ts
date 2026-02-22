@@ -4,18 +4,16 @@ import {
   getStoryCredits,
   getStoryData,
   incrementStoryCredits,
+  setStoryData,
 } from "@/lib/redis";
 import { generateStoryVideo } from "./generate-story-video";
-
-/** Cost per generated video (main or idle). */
-const CREDITS_PER_VIDEO = 1;
 
 export type GenerateStoryVideosResult =
   | { success: true; nodesGenerated: number; idleGenerated: boolean }
   | { success: false; error: string };
 
 /**
- * Main API: generate videos for all nodes + idle, sequentially.
+ * Main API: generate videos for all nodes + idle in parallel.
  * Checks and uses credits; refunds on failure.
  */
 export async function generateStoryVideos(
@@ -30,8 +28,7 @@ export async function generateStoryVideos(
   }
 
   const nodeCount = graph.nodes.length;
-  const totalVideos = nodeCount + 1; // nodes + idle
-  const totalCost = totalVideos * CREDITS_PER_VIDEO;
+  const totalCost = 5;
 
   const credits = await getStoryCredits(storyId);
   console.log("[generateStoryVideos] credits check", {
@@ -64,82 +61,90 @@ export async function generateStoryVideos(
   });
 
   try {
-    let nodesGenerated = 0;
+    const idlePrompt = `${graph.prompt}. The character sits quietly, listening. Subtle natural movements — blinking, slight breathing. No speaking.`;
 
-    for (let i = 0; i < graph.nodes.length; i++) {
-      const node = graph.nodes[i];
-      const step = i + 1;
-      console.log("[generateStoryVideos] node video", {
-        step,
-        total: graph.nodes.length,
-        nodeId: node.id,
-        title: node.title,
-      });
-
-      const prompt = `${graph.prompt}. Scene: ${node.script}`;
-      const result = await generateStoryVideo({
+    // Run all node videos + idle video in parallel (no graph updates yet)
+    const nodePromises = graph.nodes.map((node) =>
+      generateStoryVideo({
         imageUrl,
-        prompt,
+        prompt: `${graph.prompt}. Scene: ${node.script}`,
         storyId,
         nodeId: node.id,
         duration: 6,
-      });
+        updateGraph: false,
+      }).then((result) => ({ node, result }))
+    );
 
-      if (!result.success) {
-        console.error("[generateStoryVideos] node failed", {
-          nodeId: node.id,
-          error: result.error,
-        });
-        await incrementStoryCredits(storyId, totalCost);
-        return {
-          success: false,
-          error: `Node "${node.title}": ${result.error}`,
-        };
-      }
-
-      nodesGenerated++;
-      console.log("[generateStoryVideos] node done", {
-        step,
-        nodeId: node.id,
-        videoUrl: result.videoUrl,
-      });
-    }
-
-    // Idle video
-    const idlePrompt = `${graph.prompt}. The character sits quietly, listening. Subtle natural movements — blinking, slight breathing. No speaking.`;
-    console.log("[generateStoryVideos] idle video start");
-
-    const idleResult = await generateStoryVideo({
+    const idlePromise = generateStoryVideo({
       imageUrl,
       prompt: idlePrompt,
       storyId,
       isIdleVideo: true,
       duration: 6,
+      updateGraph: false,
     });
 
-    if (!idleResult.success) {
-      console.error("[generateStoryVideos] idle failed", {
-        error: idleResult.error,
+    const [nodeResults, idleResult] = await Promise.all([
+      Promise.all(nodePromises),
+      idlePromise,
+    ]);
+
+    const failedNode = nodeResults.find((r) => !r.result.success);
+    if (failedNode && failedNode.result.success === false) {
+      const err = failedNode.result.error;
+      console.error("[generateStoryVideos] node failed", {
+        nodeId: failedNode.node.id,
+        error: err,
       });
       await incrementStoryCredits(storyId, totalCost);
       return {
         success: false,
-        error: `Idle video: ${idleResult.error}`,
+        error: `Node "${failedNode.node.title}": ${err}`,
       };
     }
 
-    console.log("[generateStoryVideos] idle done", {
-      videoUrl: idleResult.videoUrl,
+    if (!idleResult.success) {
+      const err = idleResult.error;
+      console.error("[generateStoryVideos] idle failed", { error: err });
+      await incrementStoryCredits(storyId, totalCost);
+      return {
+        success: false,
+        error: `Idle video: ${err}`,
+      };
+    }
+
+    // Single graph update with all video URLs
+    const currentGraph = await getStoryData(storyId);
+    if (!currentGraph) {
+      await incrementStoryCredits(storyId, totalCost);
+      return { success: false, error: "Story not found during update." };
+    }
+
+    const nodeIdsToUrl = new Map(
+      nodeResults.map((r) => [
+        r.node.id,
+        (r.result as { success: true; videoUrl: string }).videoUrl,
+      ])
+    );
+    const updatedNodes = currentGraph.nodes.map((node) => {
+      const url = nodeIdsToUrl.get(node.id);
+      return url ? { ...node, videoUrl: url } : node;
     });
+    await setStoryData(storyId, {
+      ...currentGraph,
+      nodes: updatedNodes,
+      idleVideoUrl: idleResult.videoUrl,
+    });
+
     console.log("[generateStoryVideos] complete", {
       storyId,
-      nodesGenerated,
+      nodesGenerated: nodeResults.length,
       idleGenerated: true,
     });
 
     return {
       success: true,
-      nodesGenerated,
+      nodesGenerated: nodeResults.length,
       idleGenerated: true,
     };
   } catch (err) {

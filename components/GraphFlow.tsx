@@ -132,7 +132,14 @@ export function GraphFlow({
           Generate Story ({STORY_CREDITS} credit{STORY_CREDITS !== 1 ? "s" : ""}
           )
         </Button>
-        <Button onClick={handleGenerateVideos} variant={"default"}>
+        <Button
+          disabled={handleVideosGenerate.isPending}
+          onClick={handleGenerateVideos}
+          variant={"default"}
+        >
+          {handleVideosGenerate.isPending && (
+            <Loader2 className="size-5 animate-spin" />
+          )}
           Generate Videos ({VIDEO_CREDITS} credits)
         </Button>
       </div>

@@ -20,6 +20,8 @@ export interface GenerateStoryVideoInput {
   prompt: string;
   /** If set, upload to Blob and store URL on this story's node. */
   storyId?: string;
+  /** If false, do not update the story graph (caller will update once). Default true. */
+  updateGraph?: boolean;
 }
 
 export type GenerateStoryVideoResult =
@@ -57,7 +59,9 @@ export async function generateStoryVideo(
       contentType: "video/mp4",
     });
 
-    await maybeUpdateGraph(input, blob.url);
+    if (input.updateGraph !== false) {
+      await maybeUpdateGraph(input, blob.url);
+    }
 
     return { success: true, videoUrl: blob.url };
   } catch (err) {
