@@ -40,12 +40,12 @@ export async function generateVideo(
   input: GenerateVideoInput
 ): Promise<GenerateVideoResult> {
   const mainPrompt = `${input.graphPrompt}. Scene: ${input.script}`;
-  const idlePrompt = `${input.graphPrompt}. The character sits quietly, listening attentively. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No speaking.`;
+  const idlePrompt = `${input.graphPrompt}. The character sits quietly, listening. No speech, no talking, no dialogue — mouth closed, lips together. Ambient or environmental sound only (room tone, subtle ambience). Subtle natural movements: blinking, slight breathing, gentle head tilt. Waiting for a response.`;
 
   const mainGeneration = generateVideoFromImage({
     imageUrl: input.imageUrl,
     prompt: mainPrompt,
-    duration: 5,
+    duration: 8,
   });
 
   const idleGeneration = input.skipIdle
@@ -53,7 +53,7 @@ export async function generateVideo(
     : generateVideoFromImage({
         imageUrl: input.imageUrl,
         prompt: idlePrompt,
-        duration: 5,
+        duration: 4,
         cameraFixed: true,
       });
 

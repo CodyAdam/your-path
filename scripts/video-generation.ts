@@ -2,17 +2,18 @@ import { fal } from "@fal-ai/client";
 
 fal.config({ credentials: process.env.FAL_AI_API_KEY });
 
-export type VideoGenerationInput = {
-  imageUrl: string;
-  endImageUrl?: string;
-  prompt: string;
-  duration?: number;
+export interface VideoGenerationInput {
   cameraFixed?: boolean;
-};
+  duration?: number;
+  endImageUrl?: string;
+  generateAudio?: boolean;
+  imageUrl: string;
+  prompt: string;
+}
 
-export type VideoGenerationResult = {
+export interface VideoGenerationResult {
   videoUrl: string;
-};
+}
 
 export async function generateVideoFromImage(
   input: VideoGenerationInput
@@ -37,7 +38,7 @@ export async function generateVideoFromImage(
     aspect_ratio: "16:9",
     resolution: "720p",
     duration: String(input.duration ?? 5),
-    generate_audio: true,
+    generate_audio: input.generateAudio !== false,
     enable_safety_checker: true,
   };
 
