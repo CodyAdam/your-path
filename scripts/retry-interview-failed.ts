@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { execSync, execFileSync } from "node:child_process";
 import interview from "../app/data/scenarios/interview.json";
 
-const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos");
+const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos", "interview");
 const IMAGES_DIR = join(import.meta.dir, "..", "public", "images");
 const CHARACTERS_DIR = join(IMAGES_DIR, "characters");
 const KEYFRAMES_DIR = join(IMAGES_DIR, "keyframes", "interview");

@@ -3,7 +3,7 @@ import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 
-const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos");
+const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos", "interview");
 const LASTFRAMES_DIR = join(import.meta.dir, "..", "public", "images", "lastframes", "interview");
 
 async function downloadAndSave(url: string, filePath: string): Promise<void> {

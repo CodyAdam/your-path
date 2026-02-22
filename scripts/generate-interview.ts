@@ -6,7 +6,7 @@ import { execSync } from "node:child_process";
 import interview from "../app/data/scenarios/interview.json";
 import videoPrompts from "../app/data/scenarios/interview-video-prompts.json";
 
-const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos");
+const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos", "interview");
 const IMAGES_DIR = join(import.meta.dir, "..", "public", "images");
 const CHARACTERS_DIR = join(IMAGES_DIR, "characters");
 const KEYFRAMES_DIR = join(IMAGES_DIR, "keyframes", "interview");
