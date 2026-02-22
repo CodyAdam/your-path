@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { LucidePhoneOff, LucideRotateCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { selectPath } from "@/app/actions/select-path";
@@ -26,6 +27,7 @@ export function PlayClient({
   graph: GraphStructure;
   id: string;
 }) {
+  const router = useRouter();
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(
     graph.startNodeId
   );
@@ -252,22 +254,13 @@ export function PlayClient({
       </div>
 
       {endingNodeFinishedPlaying && (
-        <div className="fade-in absolute z-10 flex max-w-3xl animate-in flex-col items-center justify-center gap-4 bg-black p-10 text-white duration-1000">
+        <div className="fade-in absolute z-10 flex max-w-3xl animate-in flex-col items-center justify-center gap-4 p-10 text-white duration-1000">
           <div
             className="mt-20 flex flex-col items-center gap-6"
             key={currentNodeId}
           >
             <h1 className="font-bold text-2xl">The end...</h1>
             <div className="flex gap-3">
-              <Link href="/">
-                <Button
-                  className="h-14 gap-4 rounded-full px-4! text-lg"
-                  variant="destructive"
-                >
-                  <LucidePhoneOff className="size-6" />
-                  Disconnect
-                </Button>
-              </Link>
               <Button
                 className="h-14 gap-4 rounded-full px-4! text-lg"
                 disabled={isPending}
@@ -280,6 +273,15 @@ export function PlayClient({
               >
                 <LucideRotateCcw className="size-6" />
               </Button>
+              <Link href="/">
+                <Button
+                  className="h-14 gap-4 rounded-full px-4! text-lg"
+                  variant="destructive"
+                >
+                  <LucidePhoneOff className="size-6" />
+                  Disconnect
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

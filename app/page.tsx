@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PromptInputProvider } from "@/components/ai-elements/prompt-input";
+import LogoLoop, { type LogoItem } from "@/components/LogoLoop";
 import { RiGithubFill } from "@/components/RiGithubFill";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,35 @@ import { demoGraphs } from "@/lib/demo-graph";
 import type { GraphStructure } from "@/lib/graph-structure";
 import { listStories } from "@/lib/redis";
 import { CreateStory } from "./_create-new";
+
+// Alternative with image sources
+const imageLogos: LogoItem[] = [
+  {
+    src: "https://api.iconify.design/logos:google-gemini.svg",
+    alt: "Google Gemini",
+    href: "https://gemini.google.com",
+  },
+  {
+    src: "https://11labs-nonprd-15f22c1d.s3.eu-west-3.amazonaws.com/0b9cd3e1-9fad-4a5b-b3a0-c96b0a1f1d2b/elevenlabs-logo-black.svg",
+    alt: "ElevenLabs",
+    href: "https://elevenlabs.io",
+  },
+  {
+    src: "https://api.iconify.design/logos:stripe.svg",
+    alt: "Stripe",
+    href: "https://stripe.com",
+  },
+  {
+    src: "/images/hackeuropelogo.svg",
+    alt: "hackeurope",
+    href: "https://hackeurope.com",
+  },
+  {
+    src: "https://api.iconify.design/logos:vercel.svg",
+    alt: "Vercel",
+    href: "https://vercel.com",
+  },
+];
 
 export default function Home() {
   return (
@@ -21,6 +51,19 @@ export default function Home() {
             Build your own AI generated interactive stories
           </h1>
           <CreateStory />
+          <LogoLoop
+            ariaLabel="Technology partners"
+            className="mt-12 w-full max-w-3xl"
+            direction="left"
+            fadeOut
+            fadeOutColor="#FAFAFA"
+            gap={60}
+            hoverSpeed={0}
+            logoHeight={20}
+            logos={imageLogos}
+            scaleOnHover
+            speed={100}
+          />
           <h2 className="mt-40 font-semibold text-2xl text-zinc-900 tracking-tight sm:text-3xl dark:text-zinc-50">
             Try previously created stories
           </h2>

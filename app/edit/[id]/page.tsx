@@ -33,7 +33,9 @@ export default async function EditPage({
           <div className="truncate">
             <h1 className="flex items-center gap-3 font-semibold text-lg text-zinc-900 dark:text-zinc-100">
               {graph.title}{" "}
-              <Badge variant={"secondary"}>{credits} credits remaining</Badge>
+              <Badge className="bg-blue-500 text-white" variant={"secondary"}>
+                {credits} credits remaining
+              </Badge>
             </h1>
             <p
               className="mt-0.5 truncate text-sm text-zinc-600 dark:text-zinc-400"
@@ -45,7 +47,7 @@ export default async function EditPage({
           <Link className="ml-auto" href={`/play/${id}`}>
             <Button aria-label="Play" type="button">
               <Play className="h-5 w-5" />
-              Play Scenario
+              Play Story
             </Button>
           </Link>
           <CopyButton

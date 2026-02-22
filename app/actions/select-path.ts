@@ -9,7 +9,7 @@ if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
   throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set");
 }
 
-const model = google("gemini-3-flash-preview");
+const model = google("gemini-2.5-flash");
 
 export async function selectPath(
   graphId: string,
@@ -73,7 +73,7 @@ ${emotionContext ? `\n## User's current emotional state (from camera)\nUse this 
     providerOptions: {
       google: {
         thinkingConfig: {
-          thinkingLevel: "low",
+          // thinkingLevel: "minimal",
         },
       } satisfies GoogleLanguageModelOptions,
     },
