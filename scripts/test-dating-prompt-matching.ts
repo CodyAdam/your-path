@@ -9,14 +9,20 @@ console.log("=== Verifying Dating Video Prompt ↔ Script Matching ===\n");
 for (const node of dating.nodes) {
   const prompt = videoPrompts.nodes[node.id as keyof typeof videoPrompts.nodes];
   if (!prompt) {
-    console.error(`❌ MISSING PROMPT: Node "${node.id}" (${node.title}) has no video prompt`);
+    console.error(
+      `❌ MISSING PROMPT: Node "${node.id}" (${node.title}) has no video prompt`
+    );
     failed++;
     continue;
   }
 
-  const scriptMatch = node.script.match(/(?:She says|then says|says|She asks):\s*'([^']+(?:'+[^']*)*?)'/);
+  const scriptMatch = node.script.match(
+    /(?:She says|then says|says|She asks):\s*'([^']+(?:'+[^']*)*?)'/
+  );
   if (!scriptMatch) {
-    console.error(`❌ NO DIALOGUE IN SCRIPT: Node "${node.id}" script doesn't contain dialogue pattern`);
+    console.error(
+      `❌ NO DIALOGUE IN SCRIPT: Node "${node.id}" script doesn't contain dialogue pattern`
+    );
     failed++;
     continue;
   }
@@ -24,7 +30,9 @@ for (const node of dating.nodes) {
 
   const promptMatch = prompt.match(/She says:\s*'([^']+(?:'+[^']*)*?)'/);
   if (!promptMatch) {
-    console.error(`❌ NO DIALOGUE IN PROMPT: Node "${node.id}" (${node.title}) video prompt is missing dialogue`);
+    console.error(
+      `❌ NO DIALOGUE IN PROMPT: Node "${node.id}" (${node.title}) video prompt is missing dialogue`
+    );
     failed++;
     continue;
   }
@@ -50,10 +58,12 @@ for (const promptId of Object.keys(videoPrompts.nodes)) {
 }
 
 if (videoPrompts.idlePrompt.includes("She says")) {
-  console.error(`❌ IDLE PROMPT contains dialogue — idle should have NO speaking`);
+  console.error(
+    "❌ IDLE PROMPT contains dialogue — idle should have NO speaking"
+  );
   failed++;
 } else {
-  console.log(`✅ Idle prompt: no dialogue (correct)`);
+  console.log("✅ Idle prompt: no dialogue (correct)");
   passed++;
 }
 

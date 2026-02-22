@@ -1,9 +1,19 @@
 import { useMutation } from "@tanstack/react-query";
-import { useCallback, useRef, useState } from "react";
+import {
+  LucideLoaderCircle,
+  LucideMic,
+  LucideMicOff,
+  LucidePhoneOff,
+} from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { analyseAudio } from "@/app/actions/analyse-audio";
 import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "recording" | "transcribing";
+
+const DEBUG = true;
 
 export function PlaySpeechInput({
   disabled,
@@ -13,12 +23,15 @@ export function PlaySpeechInput({
   onTranscribed: (transcript: string) => void;
 }) {
   const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string>("");
+  const [lastRecordedBlob, setLastRecordedBlob] = useState<Blob | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
   const transcribeMutation = useMutation({
-    mutationFn: (formData: FormData) => analyseAudio(formData),
+    mutationFn: (formData: FormData) => {
+      console.log("mutationFn called");
+      return analyseAudio(formData);
+    },
     onSuccess: (data) => {
       const transcript = data.speechToText.result?.trim() ?? "";
       setStatus("idle");
@@ -31,13 +44,12 @@ export function PlaySpeechInput({
       }
     },
     onError: (err: Error) => {
-      setError(err.message ?? "Transcription failed");
+      toast.error(err.message ?? "Transcription failed");
       setStatus("idle");
     },
   });
 
   const startRecording = useCallback(async () => {
-    setError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -56,6 +68,7 @@ export function PlaySpeechInput({
         const blob = new Blob(chunksRef.current, {
           type: recorder.mimeType || "audio/webm",
         });
+        setLastRecordedBlob(blob);
         setStatus("transcribing");
         const form = new FormData();
         form.append("audio", blob, "recording.webm");
@@ -66,7 +79,9 @@ export function PlaySpeechInput({
       mediaRecorderRef.current = recorder;
       setStatus("recording");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not start microphone");
+      toast.error(
+        e instanceof Error ? e.message : "Could not start microphone"
+      );
       setStatus("idle");
     }
   }, [transcribeMutation]);
@@ -78,42 +93,70 @@ export function PlaySpeechInput({
     }
   }, [status]);
 
+  const [lastRecordedUrl, setLastRecordedUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!lastRecordedBlob) {
+      setLastRecordedUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(lastRecordedBlob);
+    setLastRecordedUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [lastRecordedBlob]);
+
   const isBusy = status !== "idle" || transcribeMutation.isPending;
   const isDisabled = disabled || isBusy;
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3">
+      {DEBUG && lastRecordedUrl && (
+        // biome-ignore lint/a11y/useMediaCaption: debug playback only
+        <audio controls preload="metadata" src={lastRecordedUrl}>
+          Your browser does not support the audio element.
+        </audio>
+      )}
       {status === "idle" && !transcribeMutation.isPending && (
         <Button
+          className="size-14 rounded-full"
           disabled={isDisabled}
           onClick={startRecording}
           size="lg"
           type="button"
         >
-          Hold to record
+          <LucideMicOff className="size-6" />
         </Button>
       )}
       {status === "recording" && (
         <Button
+          className="size-14 rounded-full"
+          disabled={disabled}
           onClick={stopRecording}
           size="lg"
           type="button"
-          variant="destructive"
+          variant={"secondary"}
         >
-          Stop &amp; send
+          <LucideMic className="size-6" />
         </Button>
       )}
       {(status === "transcribing" || transcribeMutation.isPending) && (
-        <p className="text-sm text-zinc-500">Transcribing…</p>
+        <Button
+          className="size-14 rounded-full"
+          disabled
+          size="lg"
+          type="button"
+        >
+          <LucideLoaderCircle className="size-6 animate-spin" />
+        </Button>
       )}
-      {(error || transcribeMutation.isError) && (
-        <p className="text-red-600 text-sm dark:text-red-400">
-          {error ||
-            (transcribeMutation.error instanceof Error
-              ? transcribeMutation.error.message
-              : "Transcription failed")}
-        </p>
-      )}
+      <Link href="/">
+        <Button
+          className="h-14 gap-4 rounded-full px-4! text-lg"
+          variant="destructive"
+        >
+          <LucidePhoneOff className="size-6" />
+          Disconnect
+        </Button>
+      </Link>
     </div>
   );
 }

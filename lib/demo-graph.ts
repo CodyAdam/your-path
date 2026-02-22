@@ -4,7 +4,7 @@ import type { GraphStructure } from "./graph-structure";
 export const demoGraph: GraphStructure = {
   title: "Tech Behavior Interview",
   startImageUrl: "/images/characters/interview-character.jpg",
-  idleVideoUrl: "/videos/node-node-01-idle.mp4",
+  idleVideoUrl: "/videos/interview/node-node-01-idle.mp4",
   prompt:
     "A professional job interview in a modern tech office. A confident female interviewer in business casual sits behind a clean desk with a laptop. She speaks directly to the camera as if the viewer is the candidate. Neutral lighting, corporate but friendly environment.",
   startNodeId: "node-01",
@@ -12,7 +12,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-01",
       title: "Welcome & Icebreaker",
-      videoUrl: "/videos/node-node-01-main.mp4",
+      videoUrl: "/videos/interview/node-node-01-main.mp4",
       script:
         "The interviewer smiles warmly and gestures to the chair. She says: 'Welcome! Thanks for coming in today. Before we dive in, tell me a bit about yourself and what brought you here.'",
       options: [
@@ -37,7 +37,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-02",
       title: "Leadership Challenge",
-      videoUrl: "/videos/node-node-02-main.mp4",
+      videoUrl: "/videos/interview/node-node-02-main.mp4",
       script:
         "She nods approvingly and leans forward. She says: 'Great. Tell me about a time you led a challenging project. What was the situation and what did you do?'",
       options: [
@@ -62,7 +62,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-02-skeptical",
       title: "Redirect — Focus",
-      videoUrl: "/videos/node-node-02-skeptical-main.mp4",
+      videoUrl: "/videos/interview/node-node-02-skeptical-main.mp4",
       script:
         "She tilts her head slightly, maintaining a professional smile. She says: 'Interesting. Let me ask you something more specific — can you walk me through a project you're most proud of?'",
       options: [
@@ -87,7 +87,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-03-impressed",
       title: "Conflict Resolution",
-      videoUrl: "/videos/node-node-03-impressed-main.mp4",
+      videoUrl: "/videos/interview/node-node-03-impressed-main.mp4",
       script:
         "She's visibly engaged, taking notes. She says: 'That's impressive. Now, in that project or another — how did you handle disagreements or conflict within the team?'",
       options: [
@@ -107,7 +107,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-03-probing",
       title: "Digging Deeper",
-      videoUrl: "/videos/node-node-03-probing-main.mp4",
+      videoUrl: "/videos/interview/node-node-03-probing-main.mp4",
       script:
         "She pauses, then says: 'I'd like to understand your approach better. Can you give me a specific example of a technical challenge you solved and walk me through your thought process?'",
       options: [
@@ -132,7 +132,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-04",
       title: "Failure & Growth",
-      videoUrl: "/videos/node-node-04-main.mp4",
+      videoUrl: "/videos/interview/node-node-04-main.mp4",
       script:
         "She puts down her pen and looks directly at the candidate. She says: 'Tell me about a time you failed. What happened and what did you learn from it?'",
       options: [
@@ -157,7 +157,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-04-concern",
       title: "Pressure Question",
-      videoUrl: "/videos/node-node-04-concern-main.mp4",
+      videoUrl: "/videos/interview/node-node-04-concern-main.mp4",
       script:
         "She leans back slightly. She says: 'Let me put it differently. If you joined our team tomorrow and the main service went down, what would be your first steps?'",
       options: [
@@ -177,7 +177,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-05",
       title: "Why This Company",
-      videoUrl: "/videos/node-node-05-main.mp4",
+      videoUrl: "/videos/interview/node-node-05-main.mp4",
       script:
         "She smiles. She says: 'We're getting close to the end. Why do you want to work here specifically? What excites you about this role?'",
       options: [
@@ -197,7 +197,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-05-skeptical",
       title: "Authenticity Check",
-      videoUrl: "/videos/node-node-05-skeptical-main.mp4",
+      videoUrl: "/videos/interview/node-node-05-skeptical-main.mp4",
       script:
         "She raises an eyebrow slightly. She says: 'I appreciate the positivity, but I'm curious — what's something you genuinely struggled with and how did it change your approach?'",
       options: [
@@ -217,7 +217,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-06-closing",
       title: "Interview Success",
-      videoUrl: "/videos/node-node-06-closing-main.mp4",
+      videoUrl: "/videos/interview/node-node-06-closing-main.mp4",
       script:
         "She closes her notebook and gives a warm, genuine smile. She says: 'This has been a great conversation. I'm impressed with your experience and how you think about problems. We'll be in touch very soon — I have a really good feeling about this.'",
       options: [],
@@ -225,7 +225,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "node-06-closing-neutral",
       title: "Interview — On the Fence",
-      videoUrl: "/videos/node-node-06-closing-neutral-main.mp4",
+      videoUrl: "/videos/interview/node-node-06-closing-neutral-main.mp4",
       script:
         "She nods politely. She says: 'Thank you for your time today. We have a few more candidates to meet, but we'll definitely be in touch with next steps.' Professional but non-committal.",
       options: [],
@@ -233,7 +233,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "lose-attitude",
       title: "Interview Failed — Attitude",
-      videoUrl: "/videos/node-lose-attitude-main.mp4",
+      videoUrl: "/videos/interview/node-lose-attitude-main.mp4",
       script:
         "She pauses, then closes her notebook. She says: 'Thank you for coming in. I think we're looking for a slightly different fit for this role. We appreciate your time.' Polite but final.",
       options: [],
@@ -241,7 +241,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "lose-credibility",
       title: "Interview Failed — Credibility",
-      videoUrl: "/videos/node-lose-credibility-main.mp4",
+      videoUrl: "/videos/interview/node-lose-credibility-main.mp4",
       script:
         "She stops writing and looks up. She says: 'I appreciate you coming in today. I'll be honest — I think there might be a gap between what we need and where you are right now. But I wish you the best.' Direct but respectful.",
       options: [],
@@ -249,7 +249,7 @@ export const demoGraph: GraphStructure = {
     {
       id: "lose-technical",
       title: "Interview Failed — Technical",
-      videoUrl: "/videos/node-lose-technical-main.mp4",
+      videoUrl: "/videos/interview/node-lose-technical-main.mp4",
       script:
         "She sets her pen down and sighs slightly. She says: 'Thank you for your time. The role requires a strong technical foundation and I think you'd benefit from more hands-on experience first. Let's keep in touch for the future.' Kind but clear.",
       options: [],
@@ -260,8 +260,8 @@ export const demoGraph: GraphStructure = {
 // ─── Date Game — Café/bar cosy early date, 5 criteria overlay checkpoints ───
 export const dateGameGraph: GraphStructure = {
   title: "Date Game",
-  startImageUrl: "/images/characters/interview-character.jpg",
-  idleVideoUrl: "/videos/date-idle.mp4",
+  startImageUrl: "/images/characters/dating-character.png",
+  idleVideoUrl: "/videos/dating/idle.mp4",
   prompt:
     "Café/bar cosy early date. She is calm, slightly ironic, never explicit about rules. Five criteria: No flexing, No alcohol, Emotionally mature, Can sing, Respectful.",
   startNodeId: "NODE_01_ARRIVAL",
@@ -270,6 +270,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_01_ARRIVAL",
       title: "Arrival / Greeting",
+      videoUrl: "/videos/dating/node-01-main.mp4",
       script: "Hey. Hi. Nice to finally meet you. How are you doing?",
       options: [
         { condition: "polite, normal", nodeId: "NODE_02_SMALL_TALK" },
@@ -281,6 +282,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_02_SMALL_TALK",
       title: "Small Talk Starter",
+      videoUrl: "/videos/dating/node-02-main.mp4",
       script: "So… how was your day today?",
       options: [
         { condition: "natural back-and-forth", nodeId: "NODE_03_INTERESTS" },
@@ -292,6 +294,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_03_INTERESTS",
       title: "Interests & Hobbies",
+      videoUrl: "/videos/dating/node-03-main.mp4",
       script: "What do you usually like to do when you have free time?",
       options: [
         { condition: "balanced interests", nodeId: "NODE_04_CURIOSITY" },
@@ -306,6 +309,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_04_CURIOSITY",
       title: "Curiosity Check",
+      videoUrl: "/videos/dating/node-04-main.mp4",
       script: "And what about you, what do you enjoy the most about that?",
       options: [
         { condition: "asks questions back", nodeId: "NODE_06_LIFESTYLE" },
@@ -317,6 +321,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_05_FLEX_FOLLOWUP",
       title: "Flex Follow-Up",
+      videoUrl: "/videos/dating/node-05-main.mp4",
       script: "That sounds intense. Do you ever just… switch off and relax?",
       toast: {
         message: "No flexing",
@@ -335,6 +340,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_06_LIFESTYLE",
       title: "Lifestyle & Routine",
+      videoUrl: "/videos/dating/node-06-main.mp4",
       script: "What does a typical week look like for you?",
       options: [
         { condition: "healthy / neutral habits", nodeId: "NODE_07_DRINK" },
@@ -346,6 +352,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_07_DRINK",
       title: "The Drink Moment",
+      videoUrl: "/videos/dating/node-07-main.mp4",
       script: "I'm not sure what to get. You can choose for me.",
       toast: {
         message: "Doesn't drink alcohol",
@@ -367,6 +374,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_08_PAST_EXPERIENCES",
       title: "Past Experiences / Relationships",
+      videoUrl: "/videos/dating/node-08-main.mp4",
       script:
         "Have you had any meaningful relationships or experiences that shaped you?",
       options: [
@@ -379,6 +387,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_09_GROWTH",
       title: "Growth & Self-Awareness",
+      videoUrl: "/videos/dating/node-09-main.mp4",
       script:
         "And looking back at that, what do you think you learned about yourself?",
       toast: {
@@ -394,6 +403,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_10_AWKWARD",
       title: "Awkward Beat / Light Teasing",
+      videoUrl: "/videos/dating/node-10-main.mp4",
       script: "Okay… that got a little deep for a first date.",
       options: [
         { condition: "laughs it off", nodeId: "NODE_11_MUSIC" },
@@ -408,6 +418,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_11_MUSIC",
       title: "Music / Fun Moment",
+      videoUrl: "/videos/dating/node-11-main.mp4",
       script: "Random question… are you into music at all?",
       options: [
         { condition: "into music", nodeId: "NODE_12_SINGING" },
@@ -418,6 +429,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_12_SINGING",
       title: "Singing Test",
+      videoUrl: "/videos/dating/node-12-main.mp4",
       script: "So… could you sing something? Even just a few seconds.",
       toast: {
         message: "Can sing",
@@ -436,6 +448,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_13_CHEMISTRY",
       title: "Final Chemistry Check",
+      videoUrl: "/videos/dating/node-13-main.mp4",
       script: "I had a nice time tonight. How did you feel about it?",
       toast: {
         message: "Respectful",
@@ -451,6 +464,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "NODE_14_CLOSING",
       title: "Closing",
+      videoUrl: "/videos/dating/node-14-win-main.mp4",
       script: "Alright. I think that's a good place to stop.",
       options: [],
     },
@@ -458,6 +472,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "LOSE_RESPECT",
       title: "Lose (respect)",
+      videoUrl: "/videos/dating/lose-respect-main.mp4",
       script: "Date ends awkwardly. She never explains why.",
       toast: { message: "Not respectful", type: "negative" },
       options: [],
@@ -465,6 +480,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "LOSE_FLEXER",
       title: "Lose (flexer)",
+      videoUrl: "/videos/dating/lose-flexer-main.mp4",
       script: "Date ends awkwardly. She never explains why.",
       toast: { message: "Flexer detected", type: "negative" },
       options: [],
@@ -472,6 +488,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "LOSE_ALCOHOL",
       title: "Lose (alcohol)",
+      videoUrl: "/videos/dating/lose-alcohol-main.mp4",
       script: "Date ends awkwardly. She never explains why.",
       toast: { message: "Orders alcohol", type: "negative" },
       options: [],
@@ -479,6 +496,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "LOSE_VICTIM",
       title: "Lose (victim)",
+      videoUrl: "/videos/dating/lose-victim-main.mp4",
       script: "Date ends awkwardly. She never explains why.",
       toast: { message: "Ex-drama / victim mindset", type: "negative" },
       options: [],
@@ -486,6 +504,7 @@ export const dateGameGraph: GraphStructure = {
     {
       id: "LOSE_SINGING",
       title: "Lose (singing)",
+      videoUrl: "/videos/dating/lose-singing-main.mp4",
       script: "Date ends awkwardly. She never explains why.",
       toast: { message: "Refuses to sing", type: "negative" },
       options: [],

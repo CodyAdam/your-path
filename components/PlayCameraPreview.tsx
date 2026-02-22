@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/useMediaCaption: ok */
 import type { FaceDetector } from "@mediapipe/tasks-vision";
 import { InferenceSession, env as ortEnv } from "onnxruntime-web";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -66,7 +67,7 @@ export function PlayCameraPreview({
       const box = firstDetection?.boundingBox;
 
       if (firstDetection && box) {
-        ctx.strokeStyle = "#00ff00";
+        ctx.strokeStyle = "#5be05b";
         ctx.lineWidth = 2;
         ctx.strokeRect(box.originX, box.originY, box.width, box.height);
 
@@ -174,7 +175,7 @@ export function PlayCameraPreview({
 
   if (error) {
     return (
-      <div className="absolute bottom-4 left-4 flex h-24 w-32 items-center justify-center rounded-lg border border-zinc-300 bg-zinc-100 p-2 text-center text-xs text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
+      <div className="absolute bottom-4 left-4 flex h-24 w-32 items-center justify-center rounded-3xl bg-zinc-100 p-2 text-center text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
         Camera unavailable
       </div>
     );
@@ -182,13 +183,12 @@ export function PlayCameraPreview({
 
   return (
     <>
-      <div className="absolute bottom-4 left-4 w-1/3 overflow-hidden rounded-lg border border-zinc-300 bg-zinc-900 shadow-lg dark:border-zinc-700">
+      <div className="overflow-hidden rounded-3xl bg-zinc-900 shadow-lg">
         {/* 4:3 matches the stream (640x480) so video and canvas overlay without stretch/crop */}
-        <div className="relative aspect-[4/3] w-full">
+        <div className="relative aspect-4/3 w-full">
           <video
             autoPlay
             className="absolute inset-0 h-full w-full object-cover"
-            muted
             playsInline
             ref={videoRef}
             style={{ transform: "scaleX(-1)" }}

@@ -1,6 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import Anthropic from "@anthropic-ai/sdk";
 import dating from "../app/data/scenarios/dating.json";
 
 const anthropic = new Anthropic();
@@ -61,17 +61,19 @@ Respond in this exact JSON format:
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 8192,
-    messages: [
-      { role: "user", content: userPrompt },
-    ],
+    messages: [{ role: "user", content: userPrompt }],
     system: systemPrompt,
   });
 
   const text = response.content[0];
-  if (text.type !== "text") throw new Error("Unexpected response type");
+  if (text.type !== "text") {
+    throw new Error("Unexpected response type");
+  }
 
   const jsonMatch = text.text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error("No JSON found in response");
+  if (!jsonMatch) {
+    throw new Error("No JSON found in response");
+  }
 
   const prompts = JSON.parse(jsonMatch[0]) as {
     idlePrompt: string;
@@ -80,7 +82,9 @@ Respond in this exact JSON format:
 
   const missing = dating.nodes.filter((n) => !prompts.nodes[n.id]);
   if (missing.length > 0) {
-    console.warn(`Warning: missing prompts for: ${missing.map((n) => n.id).join(", ")}`);
+    console.warn(
+      `Warning: missing prompts for: ${missing.map((n) => n.id).join(", ")}`
+    );
   }
 
   console.log("Generated prompts:\n");
@@ -91,7 +95,14 @@ Respond in this exact JSON format:
     console.log(`  ${prompt}\n`);
   }
 
-  const outputPath = join(import.meta.dir, "..", "app", "data", "scenarios", "dating-video-prompts.json");
+  const outputPath = join(
+    import.meta.dir,
+    "..",
+    "app",
+    "data",
+    "scenarios",
+    "dating-video-prompts.json"
+  );
   await writeFile(outputPath, JSON.stringify(prompts, null, 2));
   console.log(`\nSaved to ${outputPath}`);
 }

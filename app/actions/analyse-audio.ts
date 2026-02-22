@@ -21,6 +21,7 @@ const ALLOWED_TYPES = [
 export async function analyseAudio(
   formData: FormData
 ): Promise<AnalyseAudioResult> {
+  console.log("analyseAudio called");
   const audio = formData.get("audio");
 
   if (audio == null) {
@@ -61,6 +62,9 @@ export async function analyseAudio(
     speechToText(audio),
     speechToEmotion(audio),
   ]);
+
+  console.log("speechToTextResult", speechToTextResult);
+  console.log("sentimentAnalysisResult", sentimentAnalysisResult);
 
   return {
     speechToText: speechToTextResult,

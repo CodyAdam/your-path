@@ -1,5 +1,6 @@
 "use client";
 
+import { LucidePhoneIncoming } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -52,8 +53,14 @@ export function WaitForPermissions({
           <h1 className="font-semibold text-xl text-zinc-900 dark:text-zinc-100">
             You are all set!
           </h1>
-          <Button onClick={() => setReady(true)} type="button">
-            Start
+
+          <Button
+            className="mt-4 h-14 gap-4 rounded-full px-4! text-lg"
+            onClick={() => setReady(true)}
+            variant="success"
+          >
+            <LucidePhoneIncoming className="size-6" />
+            Connect
           </Button>
         </div>
       </div>

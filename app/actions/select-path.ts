@@ -1,6 +1,6 @@
 "use server";
 
-import { google } from "@ai-sdk/google";
+import { type GoogleLanguageModelOptions, google } from "@ai-sdk/google";
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import { getGraph } from "./get-graph";
@@ -70,6 +70,13 @@ ${emotionContext ? `\n## User's current emotional state (from camera)\nUse this 
         nodeId: z.string().describe("The ID of the next node to visit."),
       }),
     }),
+    providerOptions: {
+      google: {
+        thinkingConfig: {
+          thinkingLevel: "low",
+        },
+      } satisfies GoogleLanguageModelOptions,
+    },
   });
   const outputId = response.output.nodeId;
   const outputOption = currentNode.options.find(

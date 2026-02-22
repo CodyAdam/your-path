@@ -30,7 +30,8 @@ export async function generateImage(
   }
 
   // Use nano-banana/edit when reference images are provided, otherwise plain nano-banana
-  const model = imageUrls.length > 0 ? "fal-ai/nano-banana/edit" : "fal-ai/nano-banana";
+  const model =
+    imageUrls.length > 0 ? "fal-ai/nano-banana/edit" : "fal-ai/nano-banana";
 
   const falInput: Record<string, unknown> = {
     prompt: input.prompt,
