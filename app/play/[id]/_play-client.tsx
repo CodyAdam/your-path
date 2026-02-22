@@ -146,6 +146,17 @@ export function PlayClient({
     }
   }, [hasIdleVideo]);
 
+  // Text-only (no main video): transition to idle after 10s so idle video or end screen can show
+  useEffect(() => {
+    if (videoPhase !== "main" || hasMainVideo) {
+      return;
+    }
+    const t = setTimeout(() => {
+      setVideoPhase("idle");
+    }, 10_000);
+    return () => clearTimeout(t);
+  }, [videoPhase, hasMainVideo]);
+
   useEffect(() => {
     if (currentNode?.toast) {
       const { message, type } = currentNode.toast;
@@ -169,8 +180,14 @@ export function PlayClient({
     videoPhase === "idle" && currentNode?.options.length === 0;
 
   return (
-    <div className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 z-0 flex items-center justify-center bg-black">
+    <div className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden bg-black">
+      <Image
+        alt="blur-bg"
+        className="absolute inset-0 z-0 object-cover blur-xl"
+        fill
+        src="/images/bg.png"
+      />
+      <div className="absolute inset-0 z-0 flex items-center justify-center">
         {hasMainVideo && (
           <div
             className="absolute inset-0 transition-opacity duration-300 ease-in-out"
@@ -216,7 +233,7 @@ export function PlayClient({
           </div>
         )}
         {showingScriptFallback && (
-          <div className="max-w-3xl border border-white/20 bg-black/60 p-10 text-white">
+          <div className="max-w-xl border border-white/20 bg-black/60 p-10 font-serif text-2xl text-white">
             {currentNode?.script}
           </div>
         )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,12 +20,14 @@ export interface StoryGenerationModalProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (prompt: string) => void | Promise<void>;
   open: boolean;
+  submitting: boolean;
 }
 
 export function StoryGenerationModal({
   open,
   onOpenChange,
   initialPrompt = "",
+  submitting,
   onSubmit,
   creditCost,
 }: StoryGenerationModalProps) {
@@ -67,7 +70,8 @@ export function StoryGenerationModal({
             <Button onClick={() => onOpenChange(false)} variant="outline">
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
+            <Button disabled={submitting} onClick={handleSubmit}>
+              {submitting && <Loader2 className="size-5 animate-spin" />}
               Generate ({creditCost} credit{creditCost !== 1 ? "s" : ""})
             </Button>
           </div>

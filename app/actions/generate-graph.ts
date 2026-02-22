@@ -1,6 +1,7 @@
 "use server";
 
 import { google } from "@ai-sdk/google";
+import { put } from "@vercel/blob";
 import { generateText, Output } from "ai";
 import { graphStructure } from "@/lib/graph-structure";
 import {
@@ -56,11 +57,38 @@ Rules:
     });
 
     const graph = graphStructure.parse(output);
+
+    let startImageUrl: string | undefined;
+    try {
+      const imagePrompt = `Portrait, character or scene for an interactive story. Title: ${graph.title}. ${graph.prompt}. Photorealistic, high quality, no text or captions.`;
+      const { files } = await generateText({
+        prompt: imagePrompt,
+        model: google("gemini-2.5-flash-image"),
+      });
+      for (const file of files) {
+        if (file.mediaType.startsWith("image/")) {
+          const blob = await put(
+            `stories/${storyId}/start-image.png`,
+            Buffer.from(file.base64, "base64"),
+            {
+              access: "public",
+            }
+          );
+          startImageUrl = blob.url;
+          break;
+        }
+      }
+    } catch (err) {
+      console.error("Error generating start image:", err);
+      // Save graph without startImageUrl if image generation or upload fails
+    }
+
     await setStoryData(storyId, {
       ...graph,
       id: storyId,
       prompt: prompt.trim(),
       startNodeId: (graph.startNodeId || graph.nodes[0]?.id) ?? "start",
+      ...(startImageUrl && { startImageUrl }),
     });
 
     return { success: true };

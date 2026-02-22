@@ -11,6 +11,8 @@ import {
 } from "@xyflow/react";
 import { useMemo, useState } from "react";
 import "@xyflow/react/dist/style.css";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { generateGraph } from "@/app/actions/generate-graph";
@@ -20,6 +22,7 @@ import { graphToFlow, type NodeType } from "@/lib/graph-to-flow";
 import { cn } from "@/lib/utils";
 import { ScenarioNode } from "./ScenarioNode";
 import { StoryGenerationModal } from "./StoryGenerationModal";
+import { StoryImageNode } from "./StoryImageNode";
 import { StripeModal } from "./StripeModal";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -34,13 +37,13 @@ import {
 import { Textarea } from "./ui/textarea";
 import { VideoGenerationModal } from "./VideoGenerationModal";
 
-const nodeTypes = { scenario: ScenarioNode };
+const nodeTypes = { scenario: ScenarioNode, storyImage: StoryImageNode };
 
 interface GraphFlowProps {
   className?: string;
   graph: GraphStructure;
   remainingCredits: number;
-  storyId?: string;
+  storyId: string;
 }
 
 export function GraphFlow({
@@ -94,18 +97,15 @@ export function GraphFlow({
     }
   };
 
-  const handleStorySubmit = async (prompt: string) => {
-    if (!storyId) {
-      toast.error("Missing story. Please open this page from the editor.");
-      return;
-    }
-    const result = await generateGraph(storyId, prompt);
-    if ("error" in result) {
-      toast.error(result.error);
-      return;
-    }
-    router.refresh();
-  };
+  const generateStory = useMutation({
+    mutationFn: (prompt: string) => generateGraph(storyId, prompt),
+    onSuccess: () => {
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleVideosGenerate = async () => {
     // TODO: mutation for video generation
@@ -114,7 +114,14 @@ export function GraphFlow({
   return (
     <div className={cn(className, "relative")}>
       <div className="absolute top-4 left-4 z-20 flex gap-2">
-        <Button onClick={handleGenerateStory} variant={"default"}>
+        <Button
+          disabled={generateStory.isPending}
+          onClick={handleGenerateStory}
+          variant={"default"}
+        >
+          {generateStory.isPending && (
+            <Loader2 className="size-5 animate-spin" />
+          )}
           Generate Story ({STORY_CREDITS} credit{STORY_CREDITS !== 1 ? "s" : ""}
           )
         </Button>
@@ -145,8 +152,9 @@ export function GraphFlow({
         creditCost={STORY_CREDITS}
         initialPrompt={graph.prompt}
         onOpenChange={setShowStoryGenerationModal}
-        onSubmit={handleStorySubmit}
+        onSubmit={generateStory.mutate}
         open={showStoryGenerationModal}
+        submitting={generateStory.isPending}
       />
       <VideoGenerationModal
         creditCost={VIDEO_CREDITS}
@@ -208,7 +216,10 @@ export function GraphFlow({
         nodeTypes={nodeTypes}
         onEdgesChange={onEdgesChange}
         onNodeClick={(_, node) => {
-          setSelectedNode(node);
+          if (node.type === "storyImage") {
+            return;
+          }
+          setSelectedNode(node as NodeType);
         }}
         onNodesChange={onNodesChange}
         proOptions={{ hideAttribution: true }}

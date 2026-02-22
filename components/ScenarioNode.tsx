@@ -19,7 +19,7 @@ function ScenarioNodeComponent(props: NodeProps<NodeType>) {
         ${isStart ? "border-amber-400 ring-2 ring-amber-400/50 dark:border-amber-500" : ""}
       `}
     >
-      {!isStart && <Handle position={Position.Top} type="target" />}
+      <Handle position={Position.Top} type="target" />
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">

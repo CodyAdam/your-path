@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LucideSplit } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -22,7 +22,7 @@ export default function Home() {
           </h1>
           <CreateStory />
           <h2 className="mt-40 font-semibold text-2xl text-zinc-900 tracking-tight sm:text-3xl dark:text-zinc-50">
-            Play already created Stories
+            Try previously created stories
           </h2>
           <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3">
             {Object.entries(demoGraphs).map(([key, graph]) => (
@@ -76,6 +76,10 @@ function StoryItem({ graph }: { graph: GraphStructure }) {
             <ArrowRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-1" />
           </CardTitle>
           <CardDescription>{graph.prompt}</CardDescription>
+          <div className="mt-2 flex items-center gap-2 text-sm text-zinc-500">
+            <LucideSplit className="size-4" />
+            {graph.nodes.length} path{graph.nodes.length !== 1 ? "s" : ""}
+          </div>
         </CardHeader>
         {graph.startImageUrl ? (
           <Image

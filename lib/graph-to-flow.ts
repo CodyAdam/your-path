@@ -8,6 +8,10 @@ const HORIZONTAL_GAP = 260;
 const VERTICAL_GAP = 400;
 
 export type NodeType = Node<GraphNode & { isStart: boolean }>;
+export interface StoryImageNodeData extends Record<string, unknown> {
+  imageUrl?: string;
+}
+export type FlowNode = NodeType | Node<StoryImageNodeData>;
 
 /**
  * Converts a GraphStructure into React Flow nodes and edges with a simple
@@ -17,7 +21,7 @@ export type NodeType = Node<GraphNode & { isStart: boolean }>;
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ok
 export function graphToFlow(graph: GraphStructure): {
-  nodes: NodeType[];
+  nodes: FlowNode[];
   edges: Edge[];
 } {
   const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
@@ -73,7 +77,22 @@ export function graphToFlow(graph: GraphStructure): {
     }
   }
 
-  const nodes: NodeType[] = [];
+  const nodes: FlowNode[] = [];
+  const level0Ids = byLevel.get(0) ?? [];
+  const startIndex = level0Ids.indexOf(startId);
+  const level0Width =
+    level0Ids.length * NODE_WIDTH + (level0Ids.length - 1) * HORIZONTAL_GAP;
+  const level0StartX = -level0Width / 2 + NODE_WIDTH / 2;
+  const storyImageX = level0StartX + startIndex * (NODE_WIDTH + HORIZONTAL_GAP);
+  const storyImageY = -(NODE_HEIGHT + VERTICAL_GAP);
+
+  nodes.push({
+    id: "story-image",
+    type: "storyImage",
+    position: { x: storyImageX, y: storyImageY },
+    data: { imageUrl: graph.startImageUrl },
+  } as Node<StoryImageNodeData>);
+
   for (const [level, ids] of byLevel.entries()) {
     const levelWidth =
       ids.length * NODE_WIDTH + (ids.length - 1) * HORIZONTAL_GAP;
@@ -99,6 +118,13 @@ export function graphToFlow(graph: GraphStructure): {
 
   const edgeSet = new Set<string>();
   const edges: Edge[] = [];
+  edgeSet.add("story-image-start");
+  edges.push({
+    id: "story-image-start",
+    source: "story-image",
+    target: startId,
+    type: "default",
+  });
   for (const node of graph.nodes) {
     for (let i = 0; i < node.options.length; i++) {
       const opt = node.options[i];
