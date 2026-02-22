@@ -6,7 +6,7 @@ export const nodeSchema = z.object({
   script: z
     .string()
     .describe(
-      "The content of what the scenario will show / say in this video segment. This can be a descriptive script or a dialogue."
+      "What the AI character says or does in this moment—this is the script or action from the AI’s perspective, not the user’s. (Dialogue the AI delivers, or actions the AI performs in this segment.)"
     ),
   videoUrl: z
     .string()
@@ -42,7 +42,7 @@ export const nodeSchema = z.object({
       })
     )
     .describe(
-      "The options available from this node. If no options are provided, the node is considered to be an end node"
+      "The options available from this node. If no options are provided, the node is considered to be an end node. (The choices the player can make in this moment.)"
     ),
   fallbackNodeId: z
     .string()
