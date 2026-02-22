@@ -29,13 +29,15 @@ export default function Home() {
                     </CardTitle>
                     <CardDescription>{graph.prompt}</CardDescription>
                   </CardHeader>
-                  <Image
-                    alt={graph.title}
-                    className="aspect-video rounded-xl object-cover"
-                    height={300}
-                    src={graph.startImageUrl}
-                    width={300}
-                  />
+                  {graph.startImageUrl && (
+                    <Image
+                      alt={graph.title}
+                      className="aspect-video rounded-xl object-cover"
+                      height={300}
+                      src={graph.startImageUrl}
+                      width={300}
+                    />
+                  )}
                 </div>
               </Link>
             ))}

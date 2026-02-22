@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { stripeCheckout } from "@/app/actions/stripe-checkout";
 import {
   PromptInput,
   PromptInputBody,
@@ -11,6 +12,12 @@ import {
   usePromptInputController,
 } from "@/components/ai-elements/prompt-input";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const templates: { name: string; prompt: string }[] = [
   {
@@ -32,10 +39,12 @@ const templates: { name: string; prompt: string }[] = [
 
 export function CreateStory() {
   const controller = usePromptInputController();
+  const [showStripeModal, setShowStripeModal] = useState(false);
   const handleSubmit = useCallback((message: PromptInputMessage) => {
-    // You can handle the submitted prompt here
-    // For now, just log it
-    console.log("Submitted prompt:", message.text);
+    // save prompt to local storage
+    localStorage.setItem("prompt", message.text);
+    // open the modal for stripe payment
+    setShowStripeModal(true);
   }, []);
 
   return (
@@ -62,6 +71,43 @@ export function CreateStory() {
 
         <PromptInputSubmit className="ml-auto" />
       </PromptInputFooter>
+      {showStripeModal && (
+        <Dialog onOpenChange={(open) => setShowStripeModal(open)} open>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Video Story Generation</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <p>
+                Generating a custom interactive video story costs{" "}
+                <strong>$5</strong>. Video generation is resource intensive.
+              </p>
+              <p>
+                Would you like to continue and generate your AI-powered story?
+                If not you can try already created stories below.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                onClick={() => setShowStripeModal(false)}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  const url = await stripeCheckout(controller.textInput.value);
+                  if (url) {
+                    window.location.href = url;
+                  }
+                }}
+              >
+                Pay $5 via Stripe
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </PromptInput>
   );
 }

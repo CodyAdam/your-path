@@ -61,6 +61,7 @@ export const graphStructure = z
       .optional(),
     startImageUrl: z
       .string()
+      .optional()
       .describe(
         "The image that will be used to generate the video. This should be a URL to an image."
       ),
