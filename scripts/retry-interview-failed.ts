@@ -1,9 +1,9 @@
 import { execFileSync, execSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { generateImage } from "../app/actions/_processing/image-generation";
-import { generateVideoFromImage } from "../app/actions/_processing/video-generation";
 import interview from "../app/data/scenarios/interview.json";
+import { generateImage } from "./image-generation";
+import { generateVideoFromImage } from "./video-generation";
 
 const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos", "interview");
 const IMAGES_DIR = join(import.meta.dir, "..", "public", "images");

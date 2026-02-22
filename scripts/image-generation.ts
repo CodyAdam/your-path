@@ -2,16 +2,16 @@ import { fal } from "@fal-ai/client";
 
 fal.config({ credentials: process.env.FAL_AI_API_KEY });
 
-export type ImageGenerationInput = {
-  prompt: string;
-  referenceImages?: string[];
+export interface ImageGenerationInput {
   aspectRatio?: string;
   outputFormat?: string;
-};
+  prompt: string;
+  referenceImages?: string[];
+}
 
-export type ImageGenerationResult = {
+export interface ImageGenerationResult {
   imageUrl: string;
-};
+}
 
 export async function generateImage(
   input: ImageGenerationInput

@@ -1,9 +1,9 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { generateImage } from "../app/actions/_processing/image-generation";
-import { generateVideoFromImage } from "../app/actions/_processing/video-generation";
 import dating from "../app/data/scenarios/dating.json";
 import videoPrompts from "../app/data/scenarios/dating-video-prompts.json";
+import { generateImage } from "./image-generation";
+import { generateVideoFromImage } from "./video-generation";
 
 const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos", "dating");
 const IMAGES_DIR = join(import.meta.dir, "..", "public", "images");
