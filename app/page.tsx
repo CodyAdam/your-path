@@ -41,13 +41,18 @@ const imageLogos: LogoItem[] = [
     alt: "Vercel",
     href: "https://vercel.com",
   },
+  {
+    src: "https://api.iconify.design/devicon:kaggle-wordmark.svg",
+    alt: "Kaggle",
+    href: "https://kaggle.com",
+  },
 ];
 
 export default function Home() {
   return (
     <PromptInputProvider>
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-        <div className="absolute top-0 left-0 h-screen w-full">
+        <div className="pointer-events-none absolute top-0 left-0 h-screen w-full">
           <PrismaticBurst
             animationType="rotate3d"
             colors={["#ff007a", "#4d3dff", "#ffffff"]}
@@ -66,7 +71,6 @@ export default function Home() {
             Build your own AI generated interactive stories
           </h1>
           <CreateStory />
-
           <LogoLoop
             ariaLabel="Technology partners"
             className="mt-12 w-full max-w-3xl"
@@ -78,7 +82,7 @@ export default function Home() {
             logoHeight={20}
             logos={imageLogos}
             scaleOnHover
-            speed={100}
+            speed={60}
           />
           <h2 className="mt-40 font-semibold text-2xl text-zinc-900 tracking-tight sm:text-3xl dark:text-zinc-50">
             Try previously created stories
