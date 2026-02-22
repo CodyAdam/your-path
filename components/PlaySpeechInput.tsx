@@ -13,13 +13,13 @@ import { Button } from "@/components/ui/button";
 
 type Status = "idle" | "recording" | "transcribing";
 
-const DEBUG = true;
+const DEBUG = false;
 
 export function PlaySpeechInput({
-  disabled,
+  thinking,
   onTranscribed,
 }: {
-  disabled?: boolean;
+  thinking?: boolean;
   onTranscribed: (transcript: string) => void;
 }) {
   const [status, setStatus] = useState<Status>("idle");
@@ -51,7 +51,13 @@ export function PlaySpeechInput({
 
   const startRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
 
@@ -105,7 +111,7 @@ export function PlaySpeechInput({
   }, [lastRecordedBlob]);
 
   const isBusy = status !== "idle" || transcribeMutation.isPending;
-  const isDisabled = disabled || isBusy;
+  const isDisabled = thinking || isBusy;
 
   return (
     <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3">
@@ -115,7 +121,7 @@ export function PlaySpeechInput({
           Your browser does not support the audio element.
         </audio>
       )}
-      {status === "idle" && !transcribeMutation.isPending && (
+      {status === "idle" && !thinking && !transcribeMutation.isPending && (
         <Button
           className="size-14 rounded-full"
           disabled={isDisabled}
@@ -126,10 +132,10 @@ export function PlaySpeechInput({
           <LucideMicOff className="size-6" />
         </Button>
       )}
-      {status === "recording" && (
+      {status === "recording" && !thinking && (
         <Button
           className="size-14 rounded-full"
-          disabled={disabled}
+          disabled={thinking}
           onClick={stopRecording}
           size="lg"
           type="button"
@@ -138,7 +144,9 @@ export function PlaySpeechInput({
           <LucideMic className="size-6" />
         </Button>
       )}
-      {(status === "transcribing" || transcribeMutation.isPending) && (
+      {(thinking ||
+        status === "transcribing" ||
+        transcribeMutation.isPending) && (
         <Button
           className="size-14 rounded-full"
           disabled

@@ -269,8 +269,8 @@ export function PlayClient({
       )}
       {hasOptions && (
         <PlaySpeechInput
-          disabled={isPending}
           onTranscribed={handleTranscribed}
+          thinking={isPending}
         />
       )}
     </div>

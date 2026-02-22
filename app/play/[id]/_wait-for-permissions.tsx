@@ -19,11 +19,24 @@ export function WaitForPermissions({
     setError("");
     setState("checking");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
+      // Request video and audio in separate getUserMedia calls. On macOS, a single
+      // call with both often uses a lower-quality audio path (e.g. camera mic);
+      // separate calls keep microphone audio clear while still granting both.
+      const videoStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: false,
       });
-      for (const track of stream.getTracks()) {
+      for (const track of videoStream.getTracks()) {
+        track.stop();
+      }
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
+      for (const track of audioStream.getTracks()) {
         track.stop();
       }
       setState("granted");

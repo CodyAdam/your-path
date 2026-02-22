@@ -39,7 +39,13 @@ export function SpeechToTextDemo() {
     setTranscript("");
     uploadMutation.reset();
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
 
