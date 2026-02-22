@@ -21,9 +21,7 @@ describe("generateImage", () => {
     const fakeUrl = "https://replicate.delivery/fake-image.jpg";
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
-    const { generateImage } = await import(
-      "@/app/actions/_processing/image-generation"
-    );
+    const { generateImage } = await import("@/scripts/image-generation");
 
     const result = await generateImage({
       prompt: "A young woman in a cozy cafe",
@@ -45,9 +43,7 @@ describe("generateImage", () => {
     const fakeUrl = "https://replicate.delivery/fake-image.jpg";
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
-    const { generateImage } = await import(
-      "@/app/actions/_processing/image-generation"
-    );
+    const { generateImage } = await import("@/scripts/image-generation");
 
     await generateImage({
       prompt: "Character in office",
@@ -74,9 +70,7 @@ describe("generateImage", () => {
     const fakeUrl = "https://replicate.delivery/fake-image.png";
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
-    const { generateImage } = await import(
-      "@/app/actions/_processing/image-generation"
-    );
+    const { generateImage } = await import("@/scripts/image-generation");
 
     await generateImage({
       prompt: "Portrait",
@@ -129,9 +123,7 @@ describe("generateCharacter", () => {
       })
     );
 
-    const { generateCharacter } = await import(
-      "@/app/actions/generate-character"
-    );
+    const { generateCharacter } = await import("@/scripts/generate-character");
 
     const result = await generateCharacter({
       scenarioId: "dating",

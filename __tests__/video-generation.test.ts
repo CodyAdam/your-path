@@ -22,7 +22,7 @@ describe("generateVideoFromImage", () => {
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
     const { generateVideoFromImage } = await import(
-      "@/app/actions/_processing/video-generation"
+      "@/scripts/video-generation"
     );
 
     const result = await generateVideoFromImage({
@@ -51,7 +51,7 @@ describe("generateVideoFromImage", () => {
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
     const { generateVideoFromImage } = await import(
-      "@/app/actions/_processing/video-generation"
+      "@/scripts/video-generation"
     );
 
     await generateVideoFromImage({
@@ -75,7 +75,7 @@ describe("generateVideoFromImage", () => {
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
     const { generateVideoFromImage } = await import(
-      "@/app/actions/_processing/video-generation"
+      "@/scripts/video-generation"
     );
 
     await generateVideoFromImage({
@@ -99,7 +99,7 @@ describe("generateVideoFromImage", () => {
     mockRun.mockResolvedValue({ url: () => fakeUrl });
 
     const { generateVideoFromImage } = await import(
-      "@/app/actions/_processing/video-generation"
+      "@/scripts/video-generation"
     );
 
     const result = await generateVideoFromImage({

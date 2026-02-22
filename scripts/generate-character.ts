@@ -2,7 +2,7 @@
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { generateImage } from "./_processing/image-generation";
+import { generateImage } from "./image-generation";
 
 export const maxDuration = 120;
 
