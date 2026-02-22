@@ -8,8 +8,9 @@ import type { NodeType } from "@/lib/graph-to-flow";
 const scriptPreview = (script: string, maxLen = 80) =>
   script.length <= maxLen ? script : `${script.slice(0, maxLen).trim()}…`;
 
-function ScenarioNodeComponent(props: NodeProps<NodeType>, isStart: boolean) {
+function ScenarioNodeComponent(props: NodeProps<NodeType>) {
   const { data, selected } = props;
+  const isStart = data?.isStart ?? false;
   const d = data ?? { label: "", script: "" };
   const preview = scriptPreview(d.script ?? "");
   const hasVideo = Boolean(d.videoUrl?.trim());

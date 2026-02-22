@@ -7,13 +7,15 @@ const NODE_HEIGHT = 120;
 const HORIZONTAL_GAP = 260;
 const VERTICAL_GAP = 400;
 
-export type NodeType = Node<GraphNode>;
+export type NodeType = Node<GraphNode & { isStart: boolean }>;
 
 /**
  * Converts a GraphStructure into React Flow nodes and edges with a simple
  * layered layout (BFS from startNodeId). Nodes are placed by level (y) and
  * index within level (x).
  */
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: ok
 export function graphToFlow(graph: GraphStructure): {
   nodes: NodeType[];
   edges: Edge[];
@@ -89,6 +91,7 @@ export function graphToFlow(graph: GraphStructure): {
         position: { x, y },
         data: {
           ...node,
+          isStart: node.id === startId,
         },
       });
     });

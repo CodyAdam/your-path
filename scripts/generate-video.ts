@@ -1,24 +1,20 @@
-"use server";
-
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { generateVideoFromImage } from "./_processing/video-generation";
+import { generateVideoFromImage } from "./video-generation";
 
-export const maxDuration = 300;
-
-export type GenerateVideoInput = {
+export interface GenerateVideoInput {
+  graphPrompt: string;
+  imageUrl: string;
   nodeId: string;
   script: string;
-  imageUrl: string;
-  graphPrompt: string;
   skipIdle?: boolean;
-};
+}
 
-export type GenerateVideoResult = {
-  nodeId: string;
-  mainVideoUrl: string;
+export interface GenerateVideoResult {
   idleVideoUrl?: string;
-};
+  mainVideoUrl: string;
+  nodeId: string;
+}
 
 async function downloadAndSave(
   replicateUrl: string,
