@@ -325,10 +325,6 @@ export const dateGameGraph: GraphStructure = {
       title: "Flex Follow-Up",
       videoUrl: "/videos/dating/node-05-main.mp4",
       script: "That sounds intense. Do you ever just… switch off and relax?",
-      toast: {
-        message: "No flexing",
-        type: "positive",
-      },
       options: [
         {
           condition: "self-aware / laughs about it",
@@ -344,6 +340,10 @@ export const dateGameGraph: GraphStructure = {
       title: "Lifestyle & Routine",
       videoUrl: "/videos/dating/node-06-main.mp4",
       script: "What does a typical week look like for you?",
+      toast: {
+        message: "No flexing",
+        type: "positive",
+      },
       options: [
         { condition: "healthy / neutral habits", nodeId: "NODE_07_DRINK" },
         { condition: "alcohol-neutral mention", nodeId: "NODE_07_DRINK" },
@@ -356,10 +356,6 @@ export const dateGameGraph: GraphStructure = {
       title: "The Drink Moment",
       videoUrl: "/videos/dating/node-07-main.mp4",
       script: "I'm not sure what to get. You can choose for me.",
-      toast: {
-        message: "Doesn't drink alcohol",
-        type: "positive",
-      },
       options: [
         {
           condition: "non-alcoholic / asks preferences",
@@ -379,6 +375,10 @@ export const dateGameGraph: GraphStructure = {
       videoUrl: "/videos/dating/node-08-main.mp4",
       script:
         "Have you had any meaningful relationships or experiences that shaped you?",
+      toast: {
+        message: "Doesn't drink alcohol",
+        type: "positive",
+      },
       options: [
         { condition: "balanced, reflective", nodeId: "NODE_09_GROWTH" },
         { condition: "slight bitterness", nodeId: "NODE_10_AWKWARD" },
@@ -392,10 +392,6 @@ export const dateGameGraph: GraphStructure = {
       videoUrl: "/videos/dating/node-09-main.mp4",
       script:
         "And looking back at that, what do you think you learned about yourself?",
-      toast: {
-        message: "Emotionally mature",
-        type: "positive",
-      },
       options: [
         { condition: "shows accountability", nodeId: "NODE_11_MUSIC" },
         { condition: "avoids responsibility", nodeId: "LOSE_VICTIM" },
@@ -422,6 +418,10 @@ export const dateGameGraph: GraphStructure = {
       title: "Music / Fun Moment",
       videoUrl: "/videos/dating/node-11-main.mp4",
       script: "Random question… are you into music at all?",
+      toast: {
+        message: "Emotionally mature",
+        type: "positive",
+      },
       options: [
         { condition: "into music", nodeId: "NODE_12_SINGING" },
         { condition: "neutral", nodeId: "NODE_12_SINGING" },
@@ -433,10 +433,6 @@ export const dateGameGraph: GraphStructure = {
       title: "Singing Test",
       videoUrl: "/videos/dating/node-12-main.mp4",
       script: "So… could you sing something? Even just a few seconds.",
-      toast: {
-        message: "Can sing",
-        type: "positive",
-      },
       options: [
         {
           condition: "accepts and sings (even badly)",
@@ -453,7 +449,7 @@ export const dateGameGraph: GraphStructure = {
       videoUrl: "/videos/dating/node-13-main.mp4",
       script: "I had a nice time tonight. How did you feel about it?",
       toast: {
-        message: "Respectful",
+        message: "Can sing",
         type: "positive",
       },
       options: [
@@ -468,6 +464,10 @@ export const dateGameGraph: GraphStructure = {
       title: "Closing",
       videoUrl: "/videos/dating/node-14-win-main.mp4",
       script: "Alright. I think that's a good place to stop.",
+      toast: {
+        message: "Respectful",
+        type: "positive",
+      },
       options: [],
     },
     // ─── End states ───
