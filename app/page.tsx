@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { SpeechToTextDemo } from "@/components/SpeechToTextDemo";
 import { Button } from "@/components/ui/button";
 import { demoGraphs } from "@/lib/demo-graph";
-import { SpeechToTextDemo } from "./components/SpeechToTextDemo";
 
 export default function Home() {
   return (

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { demoGraphs } from "@/lib/demo-graph";
+import { getGraph } from "@/app/actions/get-graph";
 import { PlayClient } from "./_play-client";
+import { WaitForPermissions } from "./_wait-for-permissions";
 
 export default async function PlayPage({
   params,
@@ -8,9 +9,13 @@ export default async function PlayPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const graph = demoGraphs[id];
+  const graph = await getGraph(id);
   if (!graph) {
     return notFound();
   }
-  return <PlayClient graph={graph} id={id} />;
+  return (
+    <WaitForPermissions>
+      <PlayClient graph={graph} id={id} />
+    </WaitForPermissions>
+  );
 }
