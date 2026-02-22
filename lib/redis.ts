@@ -13,6 +13,8 @@ export const redis = new Redis({
 
 const STORY_CREDITS_KEY = (storyId: string) => `story:${storyId}:credits`;
 const STORY_DATA_KEY = (storyId: string) => `story:${storyId}:data`;
+const VIDEO_GENERATING_KEY = (storyId: string) =>
+  `story:${storyId}:video:generating`;
 
 /** Increment credits for a story (e.g. after successful payment). Returns new total. */
 export async function incrementStoryCredits(
@@ -76,4 +78,26 @@ export async function listStories(): Promise<GraphStructure[]> {
     );
 
   return parsedStories;
+}
+
+/** Slot is nodeId or "idle" for the idle video. Returns true if this process claimed the slot (should proceed); false if already generating. */
+export async function addVideoGenerating(
+  storyId: string,
+  slot: string
+): Promise<boolean> {
+  const added = await redis.sadd(VIDEO_GENERATING_KEY(storyId), slot);
+  return added === 1;
+}
+
+export async function removeVideoGenerating(
+  storyId: string,
+  slot: string
+): Promise<void> {
+  await redis.srem(VIDEO_GENERATING_KEY(storyId), slot);
+}
+
+/** Node ids and "idle" currently being generated for this story. */
+export async function getVideoGenerating(storyId: string): Promise<string[]> {
+  const members = await redis.smembers(VIDEO_GENERATING_KEY(storyId));
+  return members ?? [];
 }

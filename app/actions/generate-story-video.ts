@@ -2,7 +2,12 @@
 
 import { put } from "@vercel/blob";
 import type { GraphStructure } from "@/lib/graph-structure";
-import { getStoryData, setStoryData } from "@/lib/redis";
+import {
+  addVideoGenerating,
+  getStoryData,
+  removeVideoGenerating,
+  setStoryData,
+} from "@/lib/redis";
 import { generateVideoFromImage } from "./_processing/video-generation";
 
 const DEFAULT_DURATION = 5; // Seedance (Fal) duration in seconds
@@ -32,10 +37,34 @@ export type GenerateStoryVideoResult =
  * Generate a short video from an image + prompt using Fal (Seedance),
  * upload to Vercel Blob, and optionally update the Redis graph (node videoUrl or idleVideoUrl).
  */
+function slotFromInput(input: GenerateStoryVideoInput): string | null {
+  if (!input.storyId) {
+    return null;
+  }
+  if (input.isIdleVideo) {
+    return "idle";
+  }
+  if (input.nodeId !== undefined) {
+    return input.nodeId;
+  }
+  return null;
+}
+
 export async function generateStoryVideo(
   input: GenerateStoryVideoInput
 ): Promise<GenerateStoryVideoResult> {
   const duration = input.duration ?? DEFAULT_DURATION;
+  const slot = slotFromInput(input);
+
+  if (slot !== null && input.storyId) {
+    const claimed = await addVideoGenerating(input.storyId, slot);
+    if (!claimed) {
+      return {
+        success: false,
+        error: "This video is already being generated.",
+      };
+    }
+  }
 
   try {
     const { videoUrl: falVideoUrl } = await generateVideoFromImage({
@@ -68,6 +97,10 @@ export async function generateStoryVideo(
     const message =
       err instanceof Error ? err.message : "Video generation failed.";
     return { success: false, error: message };
+  } finally {
+    if (slot !== null && input.storyId) {
+      await removeVideoGenerating(input.storyId, slot);
+    }
   }
 }
 

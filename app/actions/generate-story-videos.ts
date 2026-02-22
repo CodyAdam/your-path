@@ -1,9 +1,13 @@
 "use server";
 
+import { after } from "next/server";
+import type { GraphStructure } from "@/lib/graph-structure";
 import {
+  addVideoGenerating,
   getStoryCredits,
   getStoryData,
   incrementStoryCredits,
+  removeVideoGenerating,
   setStoryData,
 } from "@/lib/redis";
 import { generateStoryVideo } from "./generate-story-video";
@@ -12,10 +16,28 @@ export type GenerateStoryVideosResult =
   | { success: true; nodesGenerated: number; idleGenerated: boolean }
   | { success: false; error: string };
 
-/**
- * Main API: generate videos for all nodes + idle in parallel.
- * Checks and uses credits; refunds on failure.
- */
+/** Claim video slots (nodes + idle) that are not already being generated. */
+async function claimVideoSlots(
+  storyId: string,
+  graph: GraphStructure
+): Promise<{
+  nodesToRun: GraphStructure["nodes"];
+  idleClaimed: boolean;
+  claimedCount: number;
+}> {
+  const nodesToRun: GraphStructure["nodes"] = [];
+  for (const node of graph.nodes) {
+    const claimed = await addVideoGenerating(storyId, node.id);
+    if (claimed) {
+      nodesToRun.push(node);
+    }
+  }
+  const idleClaimed = await addVideoGenerating(storyId, "idle");
+  const claimedCount = nodesToRun.length + (idleClaimed ? 1 : 0);
+  return { nodesToRun, idleClaimed, claimedCount };
+}
+
+/** Main API: generate videos for all nodes + idle in parallel. Checks and uses credits; refunds on failure. */
 export async function generateStoryVideos(
   storyId: string
 ): Promise<GenerateStoryVideosResult> {
@@ -27,24 +49,7 @@ export async function generateStoryVideos(
     return { success: false, error: "Story not found." };
   }
 
-  const nodeCount = graph.nodes.length;
-  const totalCost = 5;
-
   const credits = await getStoryCredits(storyId);
-  console.log("[generateStoryVideos] credits check", {
-    storyId,
-    credits,
-    required: totalCost,
-    nodeCount,
-  });
-
-  if (credits < totalCost) {
-    return {
-      success: false,
-      error: `Not enough credits. Need ${totalCost} (${nodeCount} nodes + 1 idle), have ${credits}.`,
-    };
-  }
-
   const imageUrl = graph.startImageUrl;
   if (!imageUrl?.trim()) {
     return {
@@ -53,107 +58,134 @@ export async function generateStoryVideos(
     };
   }
 
-  // Deduct credits upfront; we will refund on failure
-  await incrementStoryCredits(storyId, -totalCost);
-  console.log("[generateStoryVideos] credits deducted", {
+  const { nodesToRun, idleClaimed, claimedCount } = await claimVideoSlots(
     storyId,
-    deducted: totalCost,
+    graph
+  );
+
+  if (claimedCount === 0) {
+    return {
+      success: false,
+      error:
+        "All videos for this story are already being generated. Wait for them to finish.",
+    };
+  }
+
+  if (credits < claimedCount) {
+    for (const node of nodesToRun) {
+      await removeVideoGenerating(storyId, node.id);
+    }
+    if (idleClaimed) {
+      await removeVideoGenerating(storyId, "idle");
+    }
+    return {
+      success: false,
+      error: `Not enough credits. Need ${claimedCount} for the remaining videos, have ${credits}.`,
+    };
+  }
+
+  // Deduct credits for only what we're generating; we will refund on failure
+  await incrementStoryCredits(storyId, -claimedCount);
+  console.log("[generateStoryVideos] credits deducted, scheduling after()", {
+    storyId,
+    deducted: claimedCount,
+    nodesToRun: nodesToRun.length,
+    idleClaimed,
   });
 
-  try {
-    const idlePrompt = `${graph.prompt}. The character sits quietly, listening. Subtle natural movements — blinking, slight breathing. No speaking.`;
+  // Run the long-running generation after the response is sent so the request
+  // doesn't time out; the platform keeps the invocation alive until this settles.
+  after(async () => {
+    try {
+      const idlePrompt = `${graph.prompt}. The character sits quietly, listening. Subtle natural movements — blinking, slight breathing. No speaking.`;
 
-    // Run all node videos + idle video in parallel (no graph updates yet)
-    const nodePromises = graph.nodes.map((node) =>
-      generateStoryVideo({
-        imageUrl,
-        prompt: `${graph.prompt}. Scene: ${node.script}`,
-        storyId,
-        nodeId: node.id,
-        duration: 6,
-        updateGraph: false,
-      }).then((result) => ({ node, result }))
-    );
+      const nodePromises = nodesToRun.map((node) =>
+        generateStoryVideo({
+          imageUrl,
+          prompt: `${graph.prompt}. Scene: ${node.script}`,
+          storyId,
+          nodeId: node.id,
+          duration: 6,
+          updateGraph: false,
+        }).then((result) => ({ node, result }))
+      );
 
-    const idlePromise = generateStoryVideo({
-      imageUrl,
-      prompt: idlePrompt,
-      storyId,
-      isIdleVideo: true,
-      duration: 6,
-      updateGraph: false,
-    });
+      const idlePromise = idleClaimed
+        ? generateStoryVideo({
+            imageUrl,
+            prompt: idlePrompt,
+            storyId,
+            isIdleVideo: true,
+            duration: 6,
+            updateGraph: false,
+          })
+        : Promise.resolve(null);
 
-    const [nodeResults, idleResult] = await Promise.all([
-      Promise.all(nodePromises),
-      idlePromise,
-    ]);
+      const [nodeResults, idleResult] = await Promise.all([
+        Promise.all(nodePromises),
+        idlePromise,
+      ]);
 
-    const failedNode = nodeResults.find((r) => !r.result.success);
-    if (failedNode && failedNode.result.success === false) {
-      const err = failedNode.result.error;
-      console.error("[generateStoryVideos] node failed", {
-        nodeId: failedNode.node.id,
-        error: err,
+      const failedNode = nodeResults.find((r) => !r.result.success);
+      if (failedNode && failedNode.result.success === false) {
+        const err = failedNode.result.error;
+        console.error("[generateStoryVideos] node failed", {
+          nodeId: failedNode.node.id,
+          error: err,
+        });
+        await incrementStoryCredits(storyId, claimedCount);
+        return;
+      }
+
+      if (idleClaimed && idleResult && !idleResult.success) {
+        const err = idleResult.error;
+        console.error("[generateStoryVideos] idle failed", { error: err });
+        await incrementStoryCredits(storyId, claimedCount);
+        return;
+      }
+
+      const currentGraph = await getStoryData(storyId);
+      if (!currentGraph) {
+        await incrementStoryCredits(storyId, claimedCount);
+        return;
+      }
+
+      const nodeIdsToUrl = new Map(
+        nodeResults.map((r) => [
+          r.node.id,
+          (r.result as { success: true; videoUrl: string }).videoUrl,
+        ])
+      );
+      const updatedNodes = currentGraph.nodes.map((node) => {
+        const url = nodeIdsToUrl.get(node.id);
+        return url ? { ...node, videoUrl: url } : node;
       });
-      await incrementStoryCredits(storyId, totalCost);
-      return {
-        success: false,
-        error: `Node "${failedNode.node.title}": ${err}`,
-      };
+      await setStoryData(storyId, {
+        ...currentGraph,
+        nodes: updatedNodes,
+        ...(idleClaimed && idleResult && idleResult.success
+          ? { idleVideoUrl: idleResult.videoUrl }
+          : {}),
+      });
+
+      console.log("[generateStoryVideos] complete", {
+        storyId,
+        nodesGenerated: nodeResults.length,
+        idleGenerated: idleClaimed,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[generateStoryVideos] unexpected error", {
+        storyId,
+        error: message,
+      });
+      await incrementStoryCredits(storyId, claimedCount);
     }
+  });
 
-    if (!idleResult.success) {
-      const err = idleResult.error;
-      console.error("[generateStoryVideos] idle failed", { error: err });
-      await incrementStoryCredits(storyId, totalCost);
-      return {
-        success: false,
-        error: `Idle video: ${err}`,
-      };
-    }
-
-    // Single graph update with all video URLs
-    const currentGraph = await getStoryData(storyId);
-    if (!currentGraph) {
-      await incrementStoryCredits(storyId, totalCost);
-      return { success: false, error: "Story not found during update." };
-    }
-
-    const nodeIdsToUrl = new Map(
-      nodeResults.map((r) => [
-        r.node.id,
-        (r.result as { success: true; videoUrl: string }).videoUrl,
-      ])
-    );
-    const updatedNodes = currentGraph.nodes.map((node) => {
-      const url = nodeIdsToUrl.get(node.id);
-      return url ? { ...node, videoUrl: url } : node;
-    });
-    await setStoryData(storyId, {
-      ...currentGraph,
-      nodes: updatedNodes,
-      idleVideoUrl: idleResult.videoUrl,
-    });
-
-    console.log("[generateStoryVideos] complete", {
-      storyId,
-      nodesGenerated: nodeResults.length,
-      idleGenerated: true,
-    });
-
-    return {
-      success: true,
-      nodesGenerated: nodeResults.length,
-      idleGenerated: true,
-    };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[generateStoryVideos] unexpected error", {
-      storyId,
-      error: message,
-    });
-    await incrementStoryCredits(storyId, totalCost);
-    return { success: false, error: message };
-  }
+  return {
+    success: true,
+    nodesGenerated: nodesToRun.length,
+    idleGenerated: idleClaimed,
+  };
 }

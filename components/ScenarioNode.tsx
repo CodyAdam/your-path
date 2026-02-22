@@ -2,7 +2,7 @@
 "use client";
 
 import { Handle, type NodeProps, Position } from "@xyflow/react";
-import { LucideVideoOff } from "lucide-react";
+import { Loader2, LucideVideoOff } from "lucide-react";
 import { memo } from "react";
 import type { NodeType } from "@/lib/graph-to-flow";
 
@@ -12,6 +12,7 @@ function ScenarioNodeComponent(props: NodeProps<NodeType>) {
   const d = data ?? { label: "", script: "" };
   const hasVideo = Boolean(d.videoUrl?.trim());
   const hasOptions = d.options.length > 0;
+  const isGenerating = Boolean((d as { isGenerating?: boolean }).isGenerating);
 
   return (
     <div
@@ -31,8 +32,8 @@ function ScenarioNodeComponent(props: NodeProps<NodeType>) {
             </span>
           )}
         </div>
-        <div className="nodrag aspect-video w-full cursor-default overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800">
-          {hasVideo ? (
+        <div className="nodrag relative aspect-video w-full cursor-default overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800">
+          {hasVideo && !isGenerating ? (
             <video
               className="h-full w-full object-cover"
               controls
@@ -42,10 +43,21 @@ function ScenarioNodeComponent(props: NodeProps<NodeType>) {
             />
           ) : (
             <div className="flex aspect-video h-full w-full flex-col items-center justify-center gap-2 px-2 text-center">
-              <LucideVideoOff className="size-6 text-zinc-500 dark:text-zinc-400" />
-              <p className="font-medium text-[10px] text-zinc-500 dark:text-zinc-400">
-                No video for this node
-              </p>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="size-6 animate-spin text-violet-500 dark:text-violet-400" />
+                  <p className="font-medium text-[10px] text-violet-600 dark:text-violet-300">
+                    Generating video…
+                  </p>
+                </>
+              ) : (
+                <>
+                  <LucideVideoOff className="size-6 text-zinc-500 dark:text-zinc-400" />
+                  <p className="font-medium text-[10px] text-zinc-500 dark:text-zinc-400">
+                    No video for this node
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>

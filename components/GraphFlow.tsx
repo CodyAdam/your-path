@@ -9,14 +9,15 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "@xyflow/react/dist/style.css";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { generateGraph } from "@/app/actions/generate-graph";
 import { generateStoryVideos } from "@/app/actions/generate-story-videos";
+import { getGeneratingVideoSlots } from "@/app/actions/get-video-generating";
 import { stripeCheckout } from "@/app/actions/stripe-checkout";
 import type { GraphStructure } from "@/lib/graph-structure";
 import { graphToFlow, type NodeType } from "@/lib/graph-to-flow";
@@ -59,7 +60,7 @@ export function GraphFlow({
     [graph]
   );
 
-  const [nodes, _setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, _setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<NodeType | null>(null);
   const [showStripeModal, setShowStripeModal] = useState(false);
@@ -67,6 +68,51 @@ export function GraphFlow({
     useState(false);
   const [showVideosGenerationModal, setShowVideosGenerationModal] =
     useState(false);
+
+  const { data: generatingSlots = [] } = useQuery({
+    queryKey: ["video-generating", storyId],
+    queryFn: () => getGeneratingVideoSlots(storyId),
+    refetchInterval: 2000,
+    refetchIntervalInBackground: true,
+  });
+
+  // Stable serialization so we only update nodes when the set of generating slots actually changes
+  const generatingSlotsKey = useMemo(
+    () => [...generatingSlots].sort().join(","),
+    [generatingSlots]
+  );
+  const prevGeneratingKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const set = new Set(
+      generatingSlotsKey ? generatingSlotsKey.split(",") : []
+    );
+    setNodes((prev) =>
+      prev.map((node) =>
+        node.type === "scenario"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                isGenerating: set.has(node.id),
+              },
+            }
+          : node
+      )
+    );
+  }, [generatingSlotsKey, setNodes]);
+
+  // When background video generation finishes (slots go from non-empty to empty), refresh to show new videos
+  useEffect(() => {
+    const hadGenerating =
+      prevGeneratingKeyRef.current != null &&
+      prevGeneratingKeyRef.current !== "";
+    const nowEmpty = generatingSlotsKey === "";
+    prevGeneratingKeyRef.current = generatingSlotsKey;
+    if (hadGenerating && nowEmpty) {
+      router.refresh();
+    }
+  }, [generatingSlotsKey, router]);
 
   const defaultEdgeOptions = useMemo(
     () =>
