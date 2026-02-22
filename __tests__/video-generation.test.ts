@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRun = vi.fn();
 
@@ -66,7 +66,7 @@ describe("generateVideoFromImage", () => {
         input: expect.objectContaining({
           duration: 10,
         }),
-      }),
+      })
     );
   });
 
@@ -90,7 +90,7 @@ describe("generateVideoFromImage", () => {
         input: expect.objectContaining({
           camera_fixed: true,
         }),
-      }),
+      })
     );
   });
 

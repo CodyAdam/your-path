@@ -9,6 +9,10 @@ import { selectPath } from "@/app/actions/select-path";
 import { PlayCameraPreview } from "@/components/PlayCameraPreview";
 import { PlaySpeechInput } from "@/components/PlaySpeechInput";
 import { Button } from "@/components/ui/button";
+import {
+  type EmotionScores,
+  formatEmotionContextForPrompt,
+} from "@/lib/emotion-recognition";
 import type { GraphStructure } from "@/lib/graph-structure";
 
 export function PlayClient({
@@ -26,10 +30,27 @@ export function PlayClient({
   }, [currentNodeId, graph.nodes]);
 
   const [history, setHistory] = useState<string[]>([]);
+  const [emotionScores, setEmotionScores] = useState<EmotionScores>(() =>
+    Array.from({ length: 8 }, () => 0)
+  );
 
   const selectPathMutation = useMutation({
-    mutationFn: ({ userInput: input }: { userInput: string; script: string }) =>
-      selectPath(graphId, currentNodeId ?? "", input, history),
+    mutationFn: ({
+      userInput: input,
+      script: _script,
+      emotionContext,
+    }: {
+      userInput: string;
+      script: string;
+      emotionContext?: string;
+    }) =>
+      selectPath(
+        graphId,
+        currentNodeId ?? "",
+        input,
+        history,
+        emotionContext ?? undefined
+      ),
     onSuccess: (nextNode, { script, userInput: input }) => {
       console.log(
         `%c${nextNode.selectedOption.condition}`,
@@ -55,9 +76,10 @@ export function PlayClient({
       selectPathMutation.mutate({
         userInput: transcript.trim(),
         script: currentNode?.script ?? "",
+        emotionContext: formatEmotionContextForPrompt(emotionScores),
       });
     },
-    [currentNodeId, currentNode?.script, selectPathMutation]
+    [currentNodeId, currentNode?.script, emotionScores, selectPathMutation]
   );
 
   useEffect(() => {
@@ -78,7 +100,7 @@ export function PlayClient({
 
   return (
     <div className="relative flex h-screen w-full flex-col items-center justify-center">
-      <PlayCameraPreview />
+      <PlayCameraPreview onEmotionScores={setEmotionScores} />
       <Link className="absolute top-4 left-4 z-10" href="/">
         <Button disabled={isPending} variant="ghost">
           <ArrowLeft className="h-5 w-5" />

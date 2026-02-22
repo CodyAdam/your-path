@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGenerateVideoFromImage = vi.fn();
 const mockWriteFile = vi.fn();
@@ -34,7 +34,7 @@ describe("generateVideo", () => {
         status: ok ? 200 : 500,
         statusText: ok ? "OK" : "Internal Server Error",
         arrayBuffer: () => Promise.resolve(mockArrayBuffer),
-      }),
+      })
     );
   }
 
@@ -69,7 +69,7 @@ describe("generateVideo", () => {
         imageUrl: "https://example.com/hero.png",
         duration: 3,
         cameraFixed: true,
-      }),
+      })
     );
 
     expect(result.mainVideoUrl).toBe("/videos/node-node-1-main.mp4");
@@ -115,19 +115,19 @@ describe("generateVideo", () => {
 
     // fetch called for both main + idle downloads
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://replicate.delivery/video.mp4",
+      "https://replicate.delivery/video.mp4"
     );
     expect(mockMkdir).toHaveBeenCalledWith(
       expect.stringContaining("public/videos"),
-      { recursive: true },
+      { recursive: true }
     );
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining("node-abc-main.mp4"),
-      expect.any(Buffer),
+      expect.any(Buffer)
     );
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining("node-abc-idle.mp4"),
-      expect.any(Buffer),
+      expect.any(Buffer)
     );
   });
 
@@ -146,9 +146,9 @@ describe("generateVideo", () => {
         imageUrl: "https://example.com/img.png",
         graphPrompt: "Prompt",
         skipIdle: true,
-      }),
+      })
     ).rejects.toThrow(
-      "Failed to download video from Replicate: 500 Internal Server Error",
+      "Failed to download video from Replicate: 500 Internal Server Error"
     );
   });
 });

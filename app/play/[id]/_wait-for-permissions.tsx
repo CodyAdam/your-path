@@ -12,6 +12,7 @@ export function WaitForPermissions({
 }) {
   const [state, setState] = useState<PermissionState>("checking");
   const [error, setError] = useState<string>("");
+  const [ready, setReady] = useState(false);
 
   const requestPermissions = useCallback(async () => {
     setError("");
@@ -40,8 +41,23 @@ export function WaitForPermissions({
     requestPermissions();
   }, [state, requestPermissions]);
 
-  if (state === "granted") {
+  if (state === "granted" && ready) {
     return <>{children}</>;
+  }
+
+  if (state === "granted" && !ready) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-6 bg-zinc-50 p-8 dark:bg-zinc-950">
+        <div className="flex max-w-md flex-col items-center gap-4 text-center">
+          <h1 className="font-semibold text-xl text-zinc-900 dark:text-zinc-100">
+            You are all set!
+          </h1>
+          <Button onClick={() => setReady(true)} type="button">
+            Start
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (

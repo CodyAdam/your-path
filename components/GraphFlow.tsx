@@ -3,6 +3,7 @@
 import {
   Background,
   Controls,
+  type DefaultEdgeOptions,
   MiniMap,
   ReactFlow,
   useEdgesState,
@@ -32,12 +33,13 @@ export function GraphFlow({ graph, className }: GraphFlowProps) {
   const [edges, _setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const defaultEdgeOptions = useMemo(
-    () => ({
-      type: "default",
-      labelStyle: { fontSize: 10 },
-      labelBgPadding: [4, 2] as [number, number],
-      labelBgBorderRadius: 4,
-    }),
+    () =>
+      ({
+        type: "default",
+        labelStyle: { fontSize: 10 },
+        labelBgPadding: [4, 2] as [number, number],
+        labelBgBorderRadius: 4,
+      }) satisfies DefaultEdgeOptions,
     []
   );
 
@@ -60,7 +62,8 @@ export function GraphFlow({ graph, className }: GraphFlowProps) {
         <Background
           className="text-zinc-300 dark:text-zinc-600"
           gap={16}
-          size={0.5}
+          patternClassName="dark:fill-zinc-900"
+          size={1}
         />
         <Controls className="border-zinc-200 bg-zinc-800 shadow-md dark:border-zinc-700 dark:bg-zinc-800" />
         <MiniMap

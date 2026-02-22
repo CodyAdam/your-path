@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRun = vi.fn();
 
@@ -51,16 +51,22 @@ describe("generateImage", () => {
 
     await generateImage({
       prompt: "Character in office",
-      referenceImages: ["https://example.com/ref1.jpg", "https://example.com/ref2.jpg"],
+      referenceImages: [
+        "https://example.com/ref1.jpg",
+        "https://example.com/ref2.jpg",
+      ],
     });
 
     expect(mockRun).toHaveBeenCalledWith(
       "google/nano-banana",
       expect.objectContaining({
         input: expect.objectContaining({
-          image_input: ["https://example.com/ref1.jpg", "https://example.com/ref2.jpg"],
+          image_input: [
+            "https://example.com/ref1.jpg",
+            "https://example.com/ref2.jpg",
+          ],
         }),
-      }),
+      })
     );
   });
 
@@ -85,7 +91,7 @@ describe("generateImage", () => {
           aspect_ratio: "16:9",
           output_format: "png",
         }),
-      }),
+      })
     );
   });
 });
@@ -120,7 +126,7 @@ describe("generateCharacter", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         arrayBuffer: () => Promise.resolve(mockArrayBuffer),
-      }),
+      })
     );
 
     const { generateCharacter } = await import(
@@ -139,11 +145,11 @@ describe("generateCharacter", () => {
 
     expect(mockMkdir).toHaveBeenCalledWith(
       expect.stringContaining("public/images/characters"),
-      { recursive: true },
+      { recursive: true }
     );
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining("dating-character.jpg"),
-      expect.any(Buffer),
+      expect.any(Buffer)
     );
   });
 });

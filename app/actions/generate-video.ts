@@ -1,8 +1,8 @@
 "use server";
 
-import { generateVideoFromImage } from "./_processing/video-generation";
-import { writeFile, mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { generateVideoFromImage } from "./_processing/video-generation";
 
 export const maxDuration = 300;
 
@@ -22,12 +22,12 @@ export type GenerateVideoResult = {
 
 async function downloadAndSave(
   replicateUrl: string,
-  fileName: string,
+  fileName: string
 ): Promise<string> {
   const response = await fetch(replicateUrl);
   if (!response.ok) {
     throw new Error(
-      `Failed to download video from Replicate: ${response.status} ${response.statusText}`,
+      `Failed to download video from Replicate: ${response.status} ${response.statusText}`
     );
   }
 
@@ -41,7 +41,7 @@ async function downloadAndSave(
 }
 
 export async function generateVideo(
-  input: GenerateVideoInput,
+  input: GenerateVideoInput
 ): Promise<GenerateVideoResult> {
   const mainPrompt = `${input.graphPrompt}. Scene: ${input.script}`;
   const idlePrompt = `${input.graphPrompt}. The character sits quietly, listening attentively. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No speaking.`;

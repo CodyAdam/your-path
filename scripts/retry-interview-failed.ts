@@ -1,8 +1,8 @@
+import { execFileSync, execSync } from "node:child_process";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { generateImage } from "../app/actions/_processing/image-generation";
 import { generateVideoFromImage } from "../app/actions/_processing/video-generation";
-import { writeFile, mkdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { execSync, execFileSync } from "node:child_process";
 import interview from "../app/data/scenarios/interview.json";
 
 const VIDEOS_DIR = join(import.meta.dir, "..", "public", "videos");
@@ -14,7 +14,9 @@ const LASTFRAMES_DIR = join(IMAGES_DIR, "lastframes", "interview");
 async function downloadAndSave(url: string, filePath: string): Promise<void> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to download: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to download: ${response.status} ${response.statusText}`
+    );
   }
   const buffer = Buffer.from(await response.arrayBuffer());
   await writeFile(filePath, buffer);
@@ -23,13 +25,13 @@ async function downloadAndSave(url: string, filePath: string): Promise<void> {
 function extractLastFrame(videoPath: string, outputPath: string): void {
   execSync(
     `ffmpeg -y -sseof -0.1 -i "${videoPath}" -frames:v 1 -q:v 2 "${outputPath}"`,
-    { stdio: "pipe" },
+    { stdio: "pipe" }
   );
 }
 
 async function runWithConcurrency<T>(
   tasks: (() => Promise<T>)[],
-  concurrency: number,
+  concurrency: number
 ): Promise<T[]> {
   const results: T[] = new Array(tasks.length);
   let index = 0;
@@ -42,7 +44,7 @@ async function runWithConcurrency<T>(
   }
 
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker()),
+    Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker())
   );
   return results;
 }
@@ -79,7 +81,9 @@ async function main() {
   });
 
   if (missingKeyframes.length > 0) {
-    console.log(`Step 1: Regenerating ${missingKeyframes.length} missing keyframes...\n`);
+    console.log(
+      `Step 1: Regenerating ${missingKeyframes.length} missing keyframes...\n`
+    );
 
     const keyframeTasks = missingKeyframes.map((node) => async () => {
       const isTerminal = node.options.length === 0;
@@ -128,10 +132,11 @@ async function main() {
   }
 
   console.log(
-    `Step 2: Generating ${missingIdle.length} missing idle videos (5 concurrent)...\n`,
+    `Step 2: Generating ${missingIdle.length} missing idle videos (5 concurrent)...\n`
   );
 
-  const idleBasePrompt = `The character sits quietly, listening attentively. Mouth closed, lips together, not speaking. She does not talk. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No talking, no lip movement, no mouth movement. No text, no subtitles, no words on screen.`;
+  const idleBasePrompt =
+    "The character sits quietly, listening attentively. Mouth closed, lips together, not speaking. She does not talk. Subtle natural movements — blinking, slight breathing, gentle head tilt. Waiting for a response. No talking, no lip movement, no mouth movement. No text, no subtitles, no words on screen.";
 
   let done = 0;
   const failed: string[] = [];
@@ -158,18 +163,21 @@ async function main() {
       });
 
       const idleFileName = `node-${node.id}-idle.mp4`;
-      await downloadAndSave(idleResult.videoUrl, join(VIDEOS_DIR, idleFileName));
+      await downloadAndSave(
+        idleResult.videoUrl,
+        join(VIDEOS_DIR, idleFileName)
+      );
 
       done++;
       const elapsed = ((Date.now() - idleStart) / 1000).toFixed(1);
       console.log(
-        `  ✅ [${done}/${missingIdle.length}] "${node.title}" idle — ${elapsed}s`,
+        `  ✅ [${done}/${missingIdle.length}] "${node.title}" idle — ${elapsed}s`
       );
     } catch (err) {
       done++;
       const msg = err instanceof Error ? err.message : String(err);
       console.error(
-        `  ❌ [${done}/${missingIdle.length}] "${node.title}" idle failed: ${msg}`,
+        `  ❌ [${done}/${missingIdle.length}] "${node.title}" idle failed: ${msg}`
       );
       failed.push(node.title);
     }
@@ -179,7 +187,9 @@ async function main() {
 
   const totalTime = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
   console.log(`\n=== Retry Complete (${totalTime} min) ===`);
-  console.log(`  Idle videos: ${done - failed.length}/${missingIdle.length} succeeded`);
+  console.log(
+    `  Idle videos: ${done - failed.length}/${missingIdle.length} succeeded`
+  );
   if (failed.length > 0) {
     console.log(`  Still failed: ${failed.join(", ")}`);
   }

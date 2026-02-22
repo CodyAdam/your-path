@@ -10,15 +10,21 @@ console.log("=== Verifying Video Prompt ↔ Script Matching ===\n");
 for (const node of interview.nodes) {
   const prompt = videoPrompts.nodes[node.id as keyof typeof videoPrompts.nodes];
   if (!prompt) {
-    console.error(`❌ MISSING PROMPT: Node "${node.id}" (${node.title}) has no video prompt`);
+    console.error(
+      `❌ MISSING PROMPT: Node "${node.id}" (${node.title}) has no video prompt`
+    );
     failed++;
     continue;
   }
 
   // Extract the dialogue from the script field (various patterns like "She says:", "then says:", etc.)
-  const scriptMatch = node.script.match(/(?:She says|then says|says):\s*'([^']+(?:'+[^']*)*?)'/);
+  const scriptMatch = node.script.match(
+    /(?:She says|then says|says):\s*'([^']+(?:'+[^']*)*?)'/
+  );
   if (!scriptMatch) {
-    console.error(`❌ NO DIALOGUE IN SCRIPT: Node "${node.id}" script doesn't contain dialogue pattern`);
+    console.error(
+      `❌ NO DIALOGUE IN SCRIPT: Node "${node.id}" script doesn't contain dialogue pattern`
+    );
     failed++;
     continue;
   }
@@ -27,7 +33,9 @@ for (const node of interview.nodes) {
   // Check if the video prompt contains this same dialogue
   const promptMatch = prompt.match(/She says:\s*'([^']+(?:'+[^']*)*?)'/);
   if (!promptMatch) {
-    console.error(`❌ NO DIALOGUE IN PROMPT: Node "${node.id}" (${node.title}) video prompt is missing "She says: '...'" dialogue`);
+    console.error(
+      `❌ NO DIALOGUE IN PROMPT: Node "${node.id}" (${node.title}) video prompt is missing "She says: '...'" dialogue`
+    );
     failed++;
     continue;
   }
@@ -48,17 +56,21 @@ for (const node of interview.nodes) {
 const nodeIds = new Set(interview.nodes.map((n) => n.id));
 for (const promptId of Object.keys(videoPrompts.nodes)) {
   if (!nodeIds.has(promptId)) {
-    console.error(`❌ ORPHAN PROMPT: Video prompt "${promptId}" has no matching node in interview.json`);
+    console.error(
+      `❌ ORPHAN PROMPT: Video prompt "${promptId}" has no matching node in interview.json`
+    );
     failed++;
   }
 }
 
 // Test 3: Idle prompt should NOT contain "She says"
 if (videoPrompts.idlePrompt.includes("She says")) {
-  console.error(`❌ IDLE PROMPT contains dialogue — idle should have NO speaking`);
+  console.error(
+    "❌ IDLE PROMPT contains dialogue — idle should have NO speaking"
+  );
   failed++;
 } else {
-  console.log(`✅ Idle prompt: no dialogue (correct — she listens silently)`);
+  console.log("✅ Idle prompt: no dialogue (correct — she listens silently)");
   passed++;
 }
 

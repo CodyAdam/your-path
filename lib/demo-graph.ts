@@ -1,180 +1,257 @@
 import type { GraphStructure } from "./graph-structure";
 
+// Tech Behavior Interview — matches app/data/scenarios/interview.json + interview-video-prompts.json
 export const demoGraph: GraphStructure = {
-  title: "Interview Scenario",
-  startImageUrl: "https://via.placeholder.com/150",
+  title: "Tech Behavior Interview",
+  startImageUrl: "/images/characters/interview-character.jpg",
+  idleVideoUrl: "/videos/node-node-01-idle.mp4",
   prompt:
-    "Interviewer-led conversation with five phases: Introduction, Background, Soft Skills, Projection & Values, Closure.",
-  startNodeId: "NODE_01_INTRO",
+    "A professional job interview in a modern tech office. A confident female interviewer in business casual sits behind a clean desk with a laptop. She speaks directly to the camera as if the viewer is the candidate. Neutral lighting, corporate but friendly environment.",
+  startNodeId: "node-01",
   nodes: [
-    // ─── Phase 1 — Introduction & Motivation ───
     {
-      id: "NODE_01_INTRO",
-      title: "Introduction",
+      id: "node-01",
+      title: "Welcome & Icebreaker",
+      videoUrl: "/videos/node-node-01-main.mp4",
       script:
-        "Hello, thank you for joining us today. To start, could you briefly introduce yourself and tell me what motivated you to apply for this position?",
+        "The interviewer smiles warmly and gestures to the chair. She says: 'Welcome! Thanks for coming in today. Before we dive in, tell me a bit about yourself and what brought you here.'",
       options: [
         {
-          condition: "clear / confident response",
-          nodeId: "NODE_02_MOTIVATION",
+          condition:
+            "Player gives a concise, relevant introduction covering their background and motivation for applying",
+          nodeId: "node-02",
         },
-        { condition: "vague response", nodeId: "NODE_03_CLARIFICATION" },
-        { condition: "high stress", nodeId: "NODE_04_REASSURANCE" },
-      ],
-    },
-    {
-      id: "NODE_02_MOTIVATION",
-      title: "Motivation Deep Dive",
-      script:
-        "What is it about this role that feels like a good fit for what you're looking for at this stage of your career?",
-      options: [
-        { condition: "coherent motivation", nodeId: "NODE_05_BACKGROUND" },
-        { condition: "generic motivation", nodeId: "NODE_03_CLARIFICATION" },
         {
-          condition: "overconfidence detected",
-          nodeId: "NODE_06_SELF_AWARENESS",
+          condition:
+            "Player rambles without focus, gives irrelevant personal details, or seems unprepared",
+          nodeId: "node-02-skeptical",
         },
-      ],
-    },
-    {
-      id: "NODE_03_CLARIFICATION",
-      title: "Clarification",
-      script:
-        "If you had to summarize your main motivation in one key idea, what would it be?",
-      options: [
-        { condition: "clarification successful", nodeId: "NODE_05_BACKGROUND" },
-        { condition: "stress increases", nodeId: "NODE_04_REASSURANCE" },
-        { condition: "confusion persists", nodeId: "NODE_07_DIFFICULTY" },
-      ],
-    },
-    {
-      id: "NODE_04_REASSURANCE",
-      title: "Reassurance",
-      script:
-        "Take your time. There's no rush here. The goal is simply to get to know you better.",
-      options: [
-        { condition: "candidate recovers", nodeId: "NODE_05_BACKGROUND" },
-        { condition: "stress remains", nodeId: "NODE_07_DIFFICULTY" },
-      ],
-    },
-    // ─── Phase 2 — Background & Experience ───
-    {
-      id: "NODE_05_BACKGROUND",
-      title: "Background & Experience",
-      script:
-        "Could you tell me about an experience or a project you worked on that you feel particularly proud of?",
-      options: [
-        { condition: "structured experience", nodeId: "NODE_08_TEAMWORK" },
-        { condition: "too abstract", nodeId: "NODE_09_EXAMPLE_REQUEST" },
         {
-          condition: "disorganized narrative",
-          nodeId: "NODE_03_CLARIFICATION",
+          condition:
+            "Player is arrogant, dismissive of the question, or shows no interest in the role",
+          nodeId: "lose-attitude",
         },
       ],
+      fallbackNodeId: "node-02",
     },
     {
-      id: "NODE_06_SELF_AWARENESS",
-      title: "Self-Awareness",
+      id: "node-02",
+      title: "Leadership Challenge",
+      videoUrl: "/videos/node-node-02-main.mp4",
       script:
-        "With some hindsight, what would you say is an area where you're still looking to improve professionally?",
+        "She nods approvingly and leans forward. She says: 'Great. Tell me about a time you led a challenging project. What was the situation and what did you do?'",
       options: [
-        { condition: "balanced self-analysis", nodeId: "NODE_08_TEAMWORK" },
-        { condition: "avoidance", nodeId: "NODE_09_EXAMPLE_REQUEST" },
-        { condition: "defensive posture", nodeId: "NODE_10_FEEDBACK" },
+        {
+          condition:
+            "Player provides a specific example using STAR structure (Situation, Task, Action, Result) with clear leadership and impact",
+          nodeId: "node-03-impressed",
+        },
+        {
+          condition:
+            "Player gives a vague or generic answer without specific details or clear personal contribution",
+          nodeId: "node-03-probing",
+        },
+        {
+          condition:
+            "Player takes all credit, dismisses team contributions, or gives a clearly fabricated story",
+          nodeId: "lose-credibility",
+        },
       ],
+      fallbackNodeId: "node-03-probing",
     },
-    // ─── Phase 3 — Soft Skills & Stress Handling ───
     {
-      id: "NODE_07_DIFFICULTY",
-      title: "Facing Difficulty",
+      id: "node-02-skeptical",
+      title: "Redirect — Focus",
+      videoUrl: "/videos/node-node-02-skeptical-main.mp4",
       script:
-        "Have you ever been in a situation where you felt challenged or overwhelmed? How did you handle it?",
+        "She tilts her head slightly, maintaining a professional smile. She says: 'Interesting. Let me ask you something more specific — can you walk me through a project you're most proud of?'",
       options: [
-        { condition: "mature handling", nodeId: "NODE_08_TEAMWORK" },
-        { condition: "emotional overload", nodeId: "NODE_04_REASSURANCE" },
-        { condition: "avoidance", nodeId: "NODE_10_FEEDBACK" },
+        {
+          condition:
+            "Player recovers with a clear, structured answer about a specific project with measurable outcomes",
+          nodeId: "node-03-impressed",
+        },
+        {
+          condition:
+            "Player continues to be vague or unfocused but shows some relevant experience",
+          nodeId: "node-03-probing",
+        },
+        {
+          condition:
+            "Player still can't provide any concrete examples or seems to be making things up",
+          nodeId: "lose-credibility",
+        },
       ],
+      fallbackNodeId: "node-03-probing",
     },
     {
-      id: "NODE_08_TEAMWORK",
-      title: "Teamwork",
+      id: "node-03-impressed",
+      title: "Conflict Resolution",
+      videoUrl: "/videos/node-node-03-impressed-main.mp4",
       script:
-        "How would you describe the way you usually work with others, especially in team-based environments?",
+        "She's visibly engaged, taking notes. She says: 'That's impressive. Now, in that project or another — how did you handle disagreements or conflict within the team?'",
       options: [
-        { condition: "collaborative posture", nodeId: "NODE_11_CONFLICT" },
-        { condition: "individualistic posture", nodeId: "NODE_11_CONFLICT" },
-        { condition: "unclear positioning", nodeId: "NODE_09_EXAMPLE_REQUEST" },
+        {
+          condition:
+            "Player describes a mature approach to conflict: active listening, finding compromise, focusing on the problem not the person",
+          nodeId: "node-04",
+        },
+        {
+          condition:
+            "Player shows they avoid conflict entirely or escalate it rather than resolving it",
+          nodeId: "node-04-concern",
+        },
       ],
+      fallbackNodeId: "node-04",
     },
     {
-      id: "NODE_09_EXAMPLE_REQUEST",
-      title: "Request for Example",
+      id: "node-03-probing",
+      title: "Digging Deeper",
+      videoUrl: "/videos/node-node-03-probing-main.mp4",
       script:
-        "Could you give me a concrete example to illustrate what you just mentioned?",
+        "She pauses, then says: 'I'd like to understand your approach better. Can you give me a specific example of a technical challenge you solved and walk me through your thought process?'",
       options: [
-        { condition: "example provided", nodeId: "NODE_11_CONFLICT" },
-        { condition: "still vague", nodeId: "NODE_10_FEEDBACK" },
+        {
+          condition:
+            "Player provides a clear technical example with structured problem-solving and explains their reasoning",
+          nodeId: "node-04",
+        },
+        {
+          condition:
+            "Player gives a surface-level answer without demonstrating deep technical thinking",
+          nodeId: "node-04-concern",
+        },
+        {
+          condition:
+            "Player can't provide any technical example or clearly lacks the required skills",
+          nodeId: "lose-technical",
+        },
       ],
+      fallbackNodeId: "node-04-concern",
     },
     {
-      id: "NODE_10_FEEDBACK",
-      title: "Feedback & Stress",
+      id: "node-04",
+      title: "Failure & Growth",
+      videoUrl: "/videos/node-node-04-main.mp4",
       script:
-        "How do you usually react when you receive critical feedback on your work?",
+        "She puts down her pen and looks directly at the candidate. She says: 'Tell me about a time you failed. What happened and what did you learn from it?'",
       options: [
-        { condition: "open to feedback", nodeId: "NODE_12_PROJECTION" },
-        { condition: "defensive but stable", nodeId: "NODE_12_PROJECTION" },
-        { condition: "fragility", nodeId: "NODE_04_REASSURANCE" },
+        {
+          condition:
+            "Player shares a genuine failure, takes ownership, and clearly explains what they learned and how they grew",
+          nodeId: "node-05",
+        },
+        {
+          condition:
+            "Player gives a disguised success story as a failure, or claims they've never really failed",
+          nodeId: "node-05-skeptical",
+        },
+        {
+          condition:
+            "Player blames others entirely for the failure, shows no self-awareness or accountability",
+          nodeId: "lose-attitude",
+        },
       ],
+      fallbackNodeId: "node-05",
     },
     {
-      id: "NODE_11_CONFLICT",
-      title: "Conflict Management",
+      id: "node-04-concern",
+      title: "Pressure Question",
+      videoUrl: "/videos/node-node-04-concern-main.mp4",
       script:
-        "Have you ever experienced a disagreement with someone you worked with? How did you approach that situation?",
+        "She leans back slightly. She says: 'Let me put it differently. If you joined our team tomorrow and the main service went down, what would be your first steps?'",
       options: [
-        { condition: "constructive handling", nodeId: "NODE_12_PROJECTION" },
-        { condition: "conflict avoidance", nodeId: "NODE_12_PROJECTION" },
-        { condition: "poor conflict management", nodeId: "NODE_10_FEEDBACK" },
+        {
+          condition:
+            "Player describes a calm, systematic approach: check monitoring, communicate with team, isolate the issue, prioritize",
+          nodeId: "node-05",
+        },
+        {
+          condition:
+            "Player shows panic, no structure, or unrealistic answers that suggest lack of experience",
+          nodeId: "lose-technical",
+        },
       ],
+      fallbackNodeId: "node-05",
     },
-    // ─── Phase 4 — Projection & Values ───
     {
-      id: "NODE_12_PROJECTION",
-      title: "Projection",
+      id: "node-05",
+      title: "Why This Company",
+      videoUrl: "/videos/node-node-05-main.mp4",
       script:
-        "How do you see yourself evolving over the next few years, professionally speaking?",
+        "She smiles. She says: 'We're getting close to the end. Why do you want to work here specifically? What excites you about this role?'",
       options: [
-        { condition: "clear projection", nodeId: "NODE_13_VALUES" },
-        { condition: "uncertain projection", nodeId: "NODE_13_VALUES" },
+        {
+          condition:
+            "Player shows genuine knowledge of the company, connects their skills to the role, and expresses authentic enthusiasm",
+          nodeId: "node-06-closing",
+        },
+        {
+          condition:
+            "Player gives generic answers that could apply to any company, showing no research or real interest",
+          nodeId: "node-06-closing-neutral",
+        },
       ],
+      fallbackNodeId: "node-06-closing",
     },
     {
-      id: "NODE_13_VALUES",
-      title: "Values & Expectations",
+      id: "node-05-skeptical",
+      title: "Authenticity Check",
+      videoUrl: "/videos/node-node-05-skeptical-main.mp4",
       script:
-        "What matters most to you when it comes to your future work environment?",
+        "She raises an eyebrow slightly. She says: 'I appreciate the positivity, but I'm curious — what's something you genuinely struggled with and how did it change your approach?'",
       options: [
-        { condition: "aligned values", nodeId: "NODE_14_CANDIDATE_QUESTIONS" },
-        { condition: "generic values", nodeId: "NODE_14_CANDIDATE_QUESTIONS" },
+        {
+          condition:
+            "Player opens up with a real struggle, showing vulnerability and genuine growth",
+          nodeId: "node-06-closing",
+        },
+        {
+          condition:
+            "Player continues to dodge, gives another non-answer, or remains inauthentic",
+          nodeId: "lose-attitude",
+        },
       ],
-    },
-    // ─── Phase 5 — Closure ───
-    {
-      id: "NODE_14_CANDIDATE_QUESTIONS",
-      title: "Candidate Questions",
-      script:
-        "Is there anything you'd like to ask or any point you'd like to discuss before we wrap up?",
-      options: [
-        { condition: "has questions", nodeId: "NODE_15_CLOSING" },
-        { condition: "no questions", nodeId: "NODE_15_CLOSING" },
-      ],
+      fallbackNodeId: "node-06-closing",
     },
     {
-      id: "NODE_15_CLOSING",
-      title: "Closing",
+      id: "node-06-closing",
+      title: "Interview Success",
+      videoUrl: "/videos/node-node-06-closing-main.mp4",
       script:
-        "Thank you for this conversation. We'll be in touch soon. I wish you a very nice day.",
+        "She closes her notebook and gives a warm, genuine smile. She says: 'This has been a great conversation. I'm impressed with your experience and how you think about problems. We'll be in touch very soon — I have a really good feeling about this.'",
+      options: [],
+    },
+    {
+      id: "node-06-closing-neutral",
+      title: "Interview — On the Fence",
+      videoUrl: "/videos/node-node-06-closing-neutral-main.mp4",
+      script:
+        "She nods politely. She says: 'Thank you for your time today. We have a few more candidates to meet, but we'll definitely be in touch with next steps.' Professional but non-committal.",
+      options: [],
+    },
+    {
+      id: "lose-attitude",
+      title: "Interview Failed — Attitude",
+      videoUrl: "/videos/node-lose-attitude-main.mp4",
+      script:
+        "She pauses, then closes her notebook. She says: 'Thank you for coming in. I think we're looking for a slightly different fit for this role. We appreciate your time.' Polite but final.",
+      options: [],
+    },
+    {
+      id: "lose-credibility",
+      title: "Interview Failed — Credibility",
+      videoUrl: "/videos/node-lose-credibility-main.mp4",
+      script:
+        "She stops writing and looks up. She says: 'I appreciate you coming in today. I'll be honest — I think there might be a gap between what we need and where you are right now. But I wish you the best.' Direct but respectful.",
+      options: [],
+    },
+    {
+      id: "lose-technical",
+      title: "Interview Failed — Technical",
+      videoUrl: "/videos/node-lose-technical-main.mp4",
+      script:
+        "She sets her pen down and sighs slightly. She says: 'Thank you for your time. The role requires a strong technical foundation and I think you'd benefit from more hands-on experience first. Let's keep in touch for the future.' Kind but clear.",
       options: [],
     },
   ],
@@ -183,7 +260,8 @@ export const demoGraph: GraphStructure = {
 // ─── Date Game — Café/bar cosy early date, 5 criteria overlay checkpoints ───
 export const dateGameGraph: GraphStructure = {
   title: "Date Game",
-  startImageUrl: "https://via.placeholder.com/150",
+  startImageUrl: "/images/characters/interview-character.jpg",
+  idleVideoUrl: "/videos/date-idle.mp4",
   prompt:
     "Café/bar cosy early date. She is calm, slightly ironic, never explicit about rules. Five criteria: No flexing, No alcohol, Emotionally mature, Can sing, Respectful.",
   startNodeId: "NODE_01_ARRIVAL",

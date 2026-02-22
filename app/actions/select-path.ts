@@ -15,7 +15,8 @@ export async function selectPath(
   graphId: string,
   nodeId: string,
   userInput: string,
-  history: string[]
+  history: string[],
+  emotionContext?: string
 ) {
   const graph = await getGraph(graphId);
   if (!graph) {
@@ -52,6 +53,7 @@ ${currentNode.fallbackNodeId ? `- **Fallback:** If no condition fits well, use n
 
 ## Conversation so far
 ${history.length ? history.join("\n") : "(none yet)"}
+${emotionContext ? `\n## User's current emotional state (from camera)\nUse this as additional context to interpret their response (e.g. tone, engagement).\n${emotionContext}` : ""}
 
 ## Your task
 1. Interpret the user's latest response in the context of this scenario and the script that was just said.

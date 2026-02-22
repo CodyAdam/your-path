@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Emotion - Mathéo IASD</title>
+    <script
+      src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js"
+    ></script>
+    <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: white;
+      background-color: #121212;
+    }
+    .main-layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      align-items: flex-start;
+      justify-content: center;
+      width: 90%;
+    }
+
+    /* FIX DU CADRE VERT : On encapsule la vidéo et le canvas exactement à la même taille */
+    #video-area {
+      position: relative;
+      width: 500px; /* Taille fixe pour l'affichage */
+      overflow: hidden; /* Empêche les débordements */
+      border: 2px solid #333;
+      border-radius: 12px; /* Empêche les débordements */
+    }
+    video {
+      display: block;
+      width: 100%;
+    }
+    canvas#output_canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Dashboard pour les 8 émotions */
+    .dashboard {
+      width: 350px;
+      padding: 25px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    }
+    .jauge-container {
+      margin-bottom: 12px;
+    }
+    .jauge-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .bar-bg {
+      width: 100%;
+      height: 10px;
+      overflow: hidden;
+      background: #333;
+      border-radius: 5px;
+    }
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      transition: width 0.2s ease-out;
+    }
+
+    #status {
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      background: #2e7d32;
+      border-radius: 20px;
+    }
+    .loader {
+      color: #ff9800;
+      background: #422b00 !important;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>Analyse MobileViT Temps Réel</h1>
+    <div id="status" class="loader">Initialisation des systèmes...</div>
+
+    <div class="main-layout">
+      <div id="video-area">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="output_canvas"></canvas>
+      </div>
+
+      <div class="dashboard" id="emotions-panel"></div>
+    </div>
+
+    <canvas
+      id="crop_canvas"
+      width="224"
+      height="224"
+      style="display:none;"
+    ></canvas>
+
+    <script type="module">
+    import {
+      FaceDetector,
+      FilesetResolver,
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
+
+    // Configuration des 8 émotions (AffectNet)
+    const EMOTIONS = [
+      { id: 0, name: "Anger", color: "#e53935" },
+      { id: 1, name: "Contempt", color: "#8d6e63" },
+      { id: 2, name: "Disgust", color: "#7cb342" },
+      { id: 3, name: "Fear", color: "#8e24aa" },
+      { id: 4, name: "Happy", color: "#43a047" },
+      { id: 5, name: "Neutral", color: "#9e9e9e" },
+      { id: 6, name: "Sad", color: "#1e88e5" },
+      { id: 7, name: "Surprise", color: "#00acc1" },
+    ];
+
+    // Création de l'interface graphique (les 8 jauges)
+    const panel = document.getElementById("emotions-panel");
+    EMOTIONS.forEach((emo) => {
+      panel.innerHTML += `
+                <div class="jauge-container">
+                    <div class="jauge-label"><span>${emo.name}</span><span id="txt-${emo.id}">0%</span></div>
+                    <div class="bar-bg"><div id="bar-${emo.id}" class="bar-fill" style="background: ${emo.color};"></div></div>
+                </div>
+            `;
+    });
+
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("output_canvas");
+    const ctx = canvas.getContext("2d");
+    const cropCanvas = document.getElementById("crop_canvas");
+    const cropCtx = cropCanvas.getContext("2d");
+    const statusText = document.getElementById("status");
+
+    let faceDetector;
+    let ortSession;
+    let lastVideoTime = -1;
+
+    // --- 1. INITIALISATION ---
+    async function init() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 640, height: 480 },
+        });
+        video.srcObject = stream;
+        await new Promise((r) => (video.onloadedmetadata = r));
+        video.play();
+        statusText.innerText = "Caméra active. Chargement IA...";
+
+        const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+        );
+        faceDetector = await FaceDetector.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
+            delegate: "GPU",
+          },
+          runningMode: "VIDEO",
+        });
+
+        // Sécurité multi-threading pour Brave/Chrome
+        ort.env.wasm.numThreads = 1;
+
+        // Chargement strict en WASM
+        ortSession = await ort.InferenceSession.create(
+          "./emotion_model_web.onnx",
+          {
+            executionProviders: ["wasm"],
+          }
+        );
+
+        statusText.innerText = "Système opérationnel !";
+        statusText.classList.remove("loader");
+        predictWebcam();
+      } catch (error) {
+        statusText.innerText = "ERREUR : " + error.message;
+        statusText.style.background = "#b71c1c";
+        console.error(error);
+      }
+    }
+
+    // --- 2. PRE-TRAITEMENT (Normalisation) ---
+    function preprocessFace() {
+      const imageData = cropCtx.getImageData(0, 0, 224, 224);
+      const { data } = imageData;
+      const floatData = new Float32Array(1 * 3 * 224 * 224);
+
+      for (let i = 0; i < 224 * 224; i++) {
+        floatData[i] = (data[i * 4] / 255 - 0.485) / 0.229;
+        floatData[i + 224 * 224] = (data[i * 4 + 1] / 255 - 0.456) / 0.224;
+        floatData[i + 224 * 224 * 2] = (data[i * 4 + 2] / 255 - 0.406) / 0.225;
+      }
+      return new ort.Tensor("float32", floatData, [1, 3, 224, 224]);
+    }
+
+    // --- 3. BOUCLE DE DETECTION ---
+    async function predictWebcam() {
+      if (video.readyState < 2) {
+        requestAnimationFrame(predictWebcam);
+        return;
+      }
+
+      // Alignement parfait des résolutions internes
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (faceDetector && video.currentTime !== lastVideoTime) {
+        lastVideoTime = video.currentTime;
+
+        const result = faceDetector.detectForVideo(video, performance.now());
+
+        if (result.detections.length > 0) {
+          const box = result.detections[0].boundingBox;
+
+          // Dessin du cadre vert
+          ctx.strokeStyle = "#00ff00";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(box.originX, box.originY, box.width, box.height);
+
+          const x = Math.max(0, box.originX);
+          const y = Math.max(0, box.originY);
+          const w = Math.min(video.videoWidth - x, box.width);
+          const h = Math.min(video.videoHeight - y, box.height);
+
+          if (w > 0 && h > 0) {
+            cropCtx.drawImage(video, x, y, w, h, 0, 0, 224, 224);
+
+            try {
+              const tensor = preprocessFace();
+              const outputs = await ortSession.run({ input: tensor });
+              const logits = Array.from(outputs.output.data);
+
+              // Softmax
+              const maxL = Math.max(...logits);
+              const exps = logits.map((v) => Math.exp(v - maxL));
+              const sum = exps.reduce((a, b) => a + b);
+              const probs = exps.map((v) => v / sum);
+
+              updateUI(probs);
+            } catch (err) {
+              console.error("Erreur Inférence:", err);
+            }
+          }
+        }
+      }
+      requestAnimationFrame(predictWebcam);
+    }
+
+    // --- 4. MISE À JOUR DES 8 JAUGES ---
+    function updateUI(probs) {
+      EMOTIONS.forEach((emo, index) => {
+        const val = Math.min(Math.max(Math.round(probs[index] * 100), 0), 100);
+        document.getElementById(`bar-${emo.id}`).style.width = val + "%";
+        document.getElementById(`txt-${emo.id}`).innerText = val + "%";
+      });
+    }
+
+    init();
+    </script>
+  </body>
+</html>

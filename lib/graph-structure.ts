@@ -8,6 +8,12 @@ export const nodeSchema = z.object({
     .describe(
       "The content of what the scenario will show / say in this video segment. This can be a descriptive script or a dialogue."
     ),
+  videoUrl: z
+    .string()
+    .describe(
+      "The URL or path of the video for this node (e.g. /videos/filename.mp4 or full URL)."
+    )
+    .optional(),
   toast: z
     .object({
       message: z
@@ -47,6 +53,12 @@ export const nodeSchema = z.object({
 export const graphStructure = z
   .object({
     title: z.string(),
+    idleVideoUrl: z
+      .string()
+      .describe(
+        "The URL or path of the video to play when idle (e.g. /videos/idle.mp4 or full URL)."
+      )
+      .optional(),
     startImageUrl: z
       .string()
       .describe(

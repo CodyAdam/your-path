@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { nodeSchema, graphStructure } from "@/lib/graph-structure";
+import { describe, expect, it } from "vitest";
+import { graphStructure, nodeSchema } from "@/lib/graph-structure";
 
 describe("nodeSchema", () => {
   it("validates a valid node with options", () => {
