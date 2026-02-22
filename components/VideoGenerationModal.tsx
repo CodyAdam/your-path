@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +15,7 @@ export interface VideoGenerationModalProps {
   onGenerate: () => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
   open: boolean;
+  submitting: boolean;
 }
 
 export function VideoGenerationModal({
@@ -22,6 +24,7 @@ export function VideoGenerationModal({
   nodeCount,
   onGenerate,
   creditCost,
+  submitting,
 }: VideoGenerationModalProps) {
   const handleGenerate = async () => {
     await onGenerate();
@@ -43,7 +46,8 @@ export function VideoGenerationModal({
             <Button onClick={() => onOpenChange(false)} variant="outline">
               Cancel
             </Button>
-            <Button onClick={handleGenerate}>
+            <Button disabled={submitting} onClick={handleGenerate}>
+              {submitting && <Loader2 className="size-5 animate-spin" />}
               Generate ({creditCost} credit{creditCost !== 1 ? "s" : ""})
             </Button>
           </div>

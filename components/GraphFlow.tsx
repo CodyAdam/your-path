@@ -16,6 +16,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { generateGraph } from "@/app/actions/generate-graph";
+import { generateStoryVideos } from "@/app/actions/generate-story-videos";
 import { stripeCheckout } from "@/app/actions/stripe-checkout";
 import type { GraphStructure } from "@/lib/graph-structure";
 import { graphToFlow, type NodeType } from "@/lib/graph-to-flow";
@@ -107,9 +108,15 @@ export function GraphFlow({
     },
   });
 
-  const handleVideosGenerate = async () => {
-    // TODO: mutation for video generation
-  };
+  const handleVideosGenerate = useMutation({
+    mutationFn: () => generateStoryVideos(storyId),
+    onSuccess: () => {
+      router.refresh();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   return (
     <div className={cn(className, "relative")}>
@@ -159,9 +166,10 @@ export function GraphFlow({
       <VideoGenerationModal
         creditCost={VIDEO_CREDITS}
         nodeCount={graph.nodes.length}
-        onGenerate={handleVideosGenerate}
+        onGenerate={handleVideosGenerate.mutate}
         onOpenChange={setShowVideosGenerationModal}
         open={showVideosGenerationModal}
+        submitting={handleVideosGenerate.isPending}
       />
       <Sheet
         onOpenChange={(open) => setSelectedNode(open ? selectedNode : null)}

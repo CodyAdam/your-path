@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PromptInputProvider } from "@/components/ai-elements/prompt-input";
 import LogoLoop, { type LogoItem } from "@/components/LogoLoop";
+import NotForSlowDevices from "@/components/NotForSlowDevices";
 import PrismaticBurst from "@/components/PrismaticBurst";
 import { RiGithubFill } from "@/components/RiGithubFill";
 import { Badge } from "@/components/ui/badge";
@@ -59,18 +60,20 @@ export default function Home() {
     <PromptInputProvider>
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
         <div className="pointer-events-none absolute top-0 left-0 h-screen w-full">
-          <PrismaticBurst
-            animationType="rotate3d"
-            colors={["#ff007a", "#4d3dff", "#ffffff"]}
-            distort={0}
-            hoverDampness={0.25}
-            intensity={2}
-            mixBlendMode="lighten"
-            offset={{ x: 0, y: 0 }}
-            paused={false}
-            rayCount={0}
-            speed={0.5}
-          />
+          <NotForSlowDevices>
+            <PrismaticBurst
+              animationType="rotate3d"
+              colors={["#ff007a", "#4d3dff", "#ffffff"]}
+              distort={0}
+              hoverDampness={0.25}
+              intensity={2}
+              mixBlendMode="lighten"
+              offset={{ x: 0, y: 0 }}
+              paused={false}
+              rayCount={0}
+              speed={0.5}
+            />
+          </NotForSlowDevices>
         </div>
         <main className="flex h-full flex-1 flex-col items-center justify-center gap-8 border-l px-4 py-24">
           <div className="my-12 flex flex-col items-center justify-center gap-4">
