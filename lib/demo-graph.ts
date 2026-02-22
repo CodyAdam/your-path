@@ -2,6 +2,7 @@ import type { GraphStructure } from "./graph-structure";
 
 // Tech Behavior Interview — matches app/data/scenarios/interview.json + interview-video-prompts.json
 export const demoGraph: GraphStructure = {
+  id: "interview",
   title: "Tech Behavior Interview",
   startImageUrl: "/images/characters/interview-character.jpg",
   idleVideoUrl: "/videos/interview/node-node-01-idle.mp4",
@@ -259,6 +260,7 @@ export const demoGraph: GraphStructure = {
 
 // ─── Date Game — Café/bar cosy early date, 5 criteria overlay checkpoints ───
 export const dateGameGraph: GraphStructure = {
+  id: "date",
   title: "Date Game",
   startImageUrl: "/images/characters/dating-character.png",
   idleVideoUrl: "/videos/dating/idle.mp4",

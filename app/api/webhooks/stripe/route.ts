@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      const credits = await incrementStoryCredits(storyId);
+      const credits = await incrementStoryCredits(storyId, 10);
       console.log(`Story ${storyId} credits incremented to ${credits}`);
     } catch (err) {
       console.error("Failed to increment story credits:", err);

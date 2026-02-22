@@ -1,9 +1,15 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { PromptInputProvider } from "@/components/ai-elements/prompt-input";
+import { RiGithubFill } from "@/components/RiGithubFill";
+import { Button } from "@/components/ui/button";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { demoGraphs } from "@/lib/demo-graph";
+import type { GraphStructure } from "@/lib/graph-structure";
+import { listStories } from "@/lib/redis";
 import { CreateStory } from "./_create-new";
 
 export default function Home() {
@@ -18,32 +24,71 @@ export default function Home() {
           <h2 className="mt-40 font-semibold text-2xl text-zinc-900 tracking-tight sm:text-3xl dark:text-zinc-50">
             Play already created Stories
           </h2>
-          <div className="flex flex-wrap justify-center gap-4 px-4">
+          <div className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3">
             {Object.entries(demoGraphs).map(([key, graph]) => (
-              <Link className="group" href={`/edit/${key}`} key={key}>
-                <div className="flex flex-col gap-2 rounded-3xl border bg-card p-3 text-card-foreground">
-                  <CardHeader className="p-3">
-                    <CardTitle className="flex items-center gap-2">
-                      {graph.title}
-                      <ArrowRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-1" />
-                    </CardTitle>
-                    <CardDescription>{graph.prompt}</CardDescription>
-                  </CardHeader>
-                  {graph.startImageUrl && (
-                    <Image
-                      alt={graph.title}
-                      className="aspect-video rounded-xl object-cover"
-                      height={300}
-                      src={graph.startImageUrl}
-                      width={300}
-                    />
-                  )}
-                </div>
-              </Link>
+              <StoryItem graph={graph} key={key} />
             ))}
+            <Suspense
+              fallback={
+                <>
+                  <Skeleton className="h-full min-h-80 w-[326px] rounded-3xl" />
+                  <Skeleton className="h-full min-h-80 w-[326px] rounded-3xl" />
+                  <Skeleton className="h-full min-h-80 w-[326px] rounded-3xl" />
+                  <Skeleton className="h-full min-h-80 w-[326px] rounded-3xl" />
+                </>
+              }
+            >
+              <AsyncStoryList />
+            </Suspense>
           </div>
+          <footer className="mt-20 flex items-center gap-2">
+            <Link href="https://github.com/CodyAdam/your-path">
+              <Button variant="link">
+                <RiGithubFill className="size-5" />
+                GitHub
+              </Button>
+            </Link>
+          </footer>
         </main>
       </div>
     </PromptInputProvider>
+  );
+}
+
+async function AsyncStoryList() {
+  const stories = await listStories();
+  return (
+    <>
+      {stories.map((story) => (
+        <StoryItem graph={story} key={story.id} />
+      ))}
+    </>
+  );
+}
+
+function StoryItem({ graph }: { graph: GraphStructure }) {
+  return (
+    <Link className="group h-full" href={`/edit/${graph.id}`}>
+      <div className="flex h-full flex-col gap-2 rounded-3xl border bg-card p-3 text-card-foreground">
+        <CardHeader className="p-3">
+          <CardTitle className="flex items-center gap-2">
+            {graph.title}
+            <ArrowRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </CardTitle>
+          <CardDescription>{graph.prompt}</CardDescription>
+        </CardHeader>
+        {graph.startImageUrl ? (
+          <Image
+            alt={graph.title}
+            className="mt-auto aspect-video rounded-xl object-cover"
+            height={300}
+            src={graph.startImageUrl}
+            width={300}
+          />
+        ) : (
+          <Skeleton className="mt-auto aspect-video rounded-xl" />
+        )}
+      </div>
+    </Link>
   );
 }

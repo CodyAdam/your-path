@@ -2,17 +2,14 @@
 "use client";
 
 import { Handle, type NodeProps, Position } from "@xyflow/react";
+import { LucideVideoOff } from "lucide-react";
 import { memo } from "react";
 import type { NodeType } from "@/lib/graph-to-flow";
-
-const scriptPreview = (script: string, maxLen = 80) =>
-  script.length <= maxLen ? script : `${script.slice(0, maxLen).trim()}…`;
 
 function ScenarioNodeComponent(props: NodeProps<NodeType>) {
   const { data, selected } = props;
   const isStart = data?.isStart ?? false;
   const d = data ?? { label: "", script: "" };
-  const preview = scriptPreview(d.script ?? "");
   const hasVideo = Boolean(d.videoUrl?.trim());
   const hasOptions = d.options.length > 0;
 
@@ -22,7 +19,7 @@ function ScenarioNodeComponent(props: NodeProps<NodeType>) {
         ${isStart ? "border-amber-400 ring-2 ring-amber-400/50 dark:border-amber-500" : ""}
       `}
     >
-      <Handle position={Position.Top} type="target" />
+      {!isStart && <Handle position={Position.Top} type="target" />}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
@@ -45,15 +42,15 @@ function ScenarioNodeComponent(props: NodeProps<NodeType>) {
             />
           ) : (
             <div className="flex aspect-video h-full w-full flex-col items-center justify-center gap-2 px-2 text-center">
-              <div className="h-8 w-8 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+              <LucideVideoOff className="size-6 text-zinc-500 dark:text-zinc-400" />
               <p className="font-medium text-[10px] text-zinc-500 dark:text-zinc-400">
                 No video for this node
               </p>
             </div>
           )}
         </div>
-        <p className="line-clamp-2 text-xs text-zinc-600 leading-snug dark:text-zinc-400">
-          {preview}
+        <p className="line-clamp-4 text-xs text-zinc-600 leading-snug dark:text-zinc-400">
+          {d.script}
         </p>
         {hasOptions && (
           <p className="text-[10px] text-zinc-500 dark:text-zinc-500">

@@ -52,6 +52,7 @@ export const nodeSchema = z.object({
 
 export const graphStructure = z
   .object({
+    id: z.string(),
     title: z.string(),
     idleVideoUrl: z
       .string()
