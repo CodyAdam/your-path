@@ -252,18 +252,6 @@ const PrismaticBurst = ({
   const isVisibleRef = useRef<boolean>(true);
   const meshRef = useRef<Mesh | null>(null);
   const triRef = useRef<Triangle | null>(null);
-  import { useDetectGPU } from '@react-three/drei';
-  function App() {
-    const gpu = useDetectGPU();
-
-    const shouldShowShader = gpu.tier > 0 && !gpu.isMobile; // adjust thresholds to your shader’s weight
-
-    return (
-      <div>
-        {shouldShowShader ? <HeavyShaderComponent /> : <FallbackComponent />}
-      </div>
-    );
-  }
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -434,7 +422,7 @@ const PrismaticBurst = ({
       rendererRef.current = null;
       gradTexRef.current = null;
     };
-  }, []);
+  }, [mixBlendMode]);
 
   useEffect(() => {
     const canvas = rendererRef.current?.gl?.canvas as
